@@ -9,7 +9,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class NexiToYNAB
+class Nexi implements Transformer
 {
     private const FIRST_DATA_ROW = 11;
     private const COL_TO_CHECK_END = "B";
@@ -21,7 +21,7 @@ class NexiToYNAB
         $this->nexiFile = IOFactory::load($inputFilename);
     }
 
-    public function process(): YNABTransactions
+    public function transformToYNAB(): YNABTransactions
     {
         $YNABTransactions = new YNABTransactions();
 

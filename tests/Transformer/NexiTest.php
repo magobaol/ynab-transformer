@@ -2,15 +2,15 @@
 
 namespace Tests\Transformer;
 
-use Transformer\NexiToYNAB;
+use Transformer\Nexi;
 use PHPUnit\Framework\TestCase;
 
-class NexiToYNABTest extends TestCase
+class NexiTest extends TestCase
 {
     public function test_process()
     {
-        $nexiToYNAB = new NexiToYNAB(__DIR__.'/../Fixtures/movimenti-nexi.xlsx');
-        $YNABTransactions = $nexiToYNAB->process();
+        $nexiToYNAB = new Nexi(__DIR__.'/../Fixtures/movimenti-nexi.xlsx');
+        $YNABTransactions = $nexiToYNAB->transformToYNAB();
 
         $transactionsArray = $YNABTransactions->toArray();
 
