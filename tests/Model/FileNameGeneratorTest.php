@@ -36,6 +36,18 @@ class FileNameGeneratorTest extends TestCase
         $this->assertEquals('/home/francesco/dev/path/filename-to-ynab.xlsx', $newFileName);
     }
 
+    public function test_create_with_different_extension_returns_original_filename_with_new_extension()
+    {
+        $filename = '/home/francesco/dev/path/filename.xlsx';
+
+        $newFileName =
+            FileNameGenerator::fromSourceFilename($filename)
+                ->withExtension('csv')
+                ->generate();
+
+        $this->assertEquals('/home/francesco/dev/path/filename.csv', $newFileName);
+    }
+
     public function test_create_without_personalization_returns_original_filename_without_duplicate()
     {
         Carbon::setTestNow('2021-08-22 02:01:00');
