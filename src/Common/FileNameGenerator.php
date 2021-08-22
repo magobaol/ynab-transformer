@@ -1,6 +1,6 @@
 <?php
 
-namespace Model;
+namespace Common;
 
 use Carbon\Carbon;
 

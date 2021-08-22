@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Model;
+namespace Tests\Transformer;
 
-use Model\NexiToYNAB;
+use Transformer\NexiToYNAB;
 use PHPUnit\Framework\TestCase;
 
 class NexiToYNABTest extends TestCase
