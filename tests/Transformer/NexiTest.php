@@ -12,23 +12,36 @@ class NexiTest extends TestCase
         $nexiToYNAB = new Nexi(__DIR__.'/../Fixtures/movimenti-nexi.xlsx');
         $YNABTransactions = $nexiToYNAB->transformToYNAB();
 
-        $transactionsArray = $YNABTransactions->toArray();
+        $transactions = $YNABTransactions;
 
-        $this->assertCount(3, $transactionsArray);
+        $this->assertCount(3, $transactions->toArray());
 
-        $this->assertEquals('2021-08-13', $YNABTransactions->getByIndex(0)->getDate()->format('Y-m-d'));
-        $this->assertEquals('GRUPPO SDA SRL', $YNABTransactions->getByIndex(0)->getPayee());
-        $this->assertEquals('0.00', $YNABTransactions->getByIndex(0)->getInflowAsString());
-        $this->assertEquals('33.88', $YNABTransactions->getByIndex(0)->getOutflowAsString());
+        $transaction1 = [
+            'date' => '2021-08-13',
+            'payee' => 'GRUPPO SDA SRL',
+            'memo' => '',
+            'outflow' => '33.88',
+            'inflow' => '0.00'
+        ];
+        $this->assertEquals($transaction1, $transactions->getByIndex(0)->toArray());
 
-        $this->assertEquals('2021-08-03', $YNABTransactions->getByIndex(1)->getDate()->format('Y-m-d'));
-        $this->assertEquals('AMZ*Amazon.it', $YNABTransactions->getByIndex(1)->getPayee());
-        $this->assertEquals('53.25', $YNABTransactions->getByIndex(1)->getInflowAsString());
-        $this->assertEquals('0.00', $YNABTransactions->getByIndex(1)->getOutflowAsString());
+        $transaction2 = [
+            'date' => '2021-08-03',
+            'payee' => 'AMZ*Amazon.it',
+            'memo' => '',
+            'outflow' => '0.00',
+            'inflow' => '53.25'
+        ];
+        $this->assertEquals($transaction2, $transactions->getByIndex(1)->toArray());
 
-        $this->assertEquals('2021-08-03', $YNABTransactions->getByIndex(2)->getDate()->format('Y-m-d'));
-        $this->assertEquals('Subscription PRO', $YNABTransactions->getByIndex(2)->getPayee());
-        $this->assertEquals('0.00', $YNABTransactions->getByIndex(2)->getInflowAsString());
-        $this->assertEquals('1.71', $YNABTransactions->getByIndex(2)->getOutflowAsString());
+        $transaction3 = [
+            'date' => '2021-08-03',
+            'payee' => 'Subscription PRO',
+            'memo' => '',
+            'outflow' => '1.71',
+            'inflow' => '0.00'
+        ];
+        $this->assertEquals($transaction3, $transactions->getByIndex(2)->toArray());
+
     }
 }
