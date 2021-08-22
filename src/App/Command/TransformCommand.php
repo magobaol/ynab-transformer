@@ -4,6 +4,7 @@ namespace App\Command;
 
 use Common\FileNameGenerator;
 use Symfony\Component\Console\Input\InputOption;
+use Transformer\Fineco;
 use Transformer\Nexi;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -47,6 +48,7 @@ class TransformCommand extends Command
         $transformer = match ($input->getOption('format')) {
             'nexi' => new Nexi($sourceFileName),
             'popso' => new Popso($sourceFileName),
+            'fineco' => new Fineco($sourceFileName)
         };
 
         $ynabTransactions = $transformer->transformToYNAB();
