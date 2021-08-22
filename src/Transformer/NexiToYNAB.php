@@ -1,6 +1,6 @@
 <?php
 
-namespace Model;
+namespace Transformer;
 
 use Carbon\Carbon;
 use Model\Transaction\YNABTransaction;

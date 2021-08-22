@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Model;
+namespace Tests\Common;
 
 use Carbon\Carbon;
-use Model\FileNameGenerator;
+use Common\FileNameGenerator;
 use PHPUnit\Framework\TestCase;
 
 class FileNameGeneratorTest extends TestCase
