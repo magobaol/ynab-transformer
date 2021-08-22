@@ -59,7 +59,7 @@ class Nexi implements Transformer
 
     private function shouldSkipRow(int $row)
     {
-        return false;
+        return ($this->file->getActiveSheet()->getCell('G' . $row)->getValue() == 'Non Contabilizzato');
     }
 
     /**
