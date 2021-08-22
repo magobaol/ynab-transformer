@@ -38,8 +38,8 @@ class NexiToYNAB
                     $date->format('Y-m-d'),
                     $payee,
                     $memo,
-                    $amount < 0 ? abs($amount) : 0,
                     $amount > 0 ? abs($amount) : 0,
+                    $amount < 0 ? abs($amount) : 0,
                 );
                 $YNABTransactions->add($transaction);
                 $row++;
