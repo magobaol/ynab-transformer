@@ -36,4 +36,9 @@ class YNABTransactions
 
         return $data;
     }
+
+    public function toCSVFile($filename)
+    {
+        file_put_contents($filename, $this->toCSV());
+    }
 }
