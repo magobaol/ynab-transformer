@@ -23,8 +23,8 @@ class FileNameGenerator
      */
     private mixed $inputFilename;
 
-    private $suffix = '';
-
+    private string $suffix = '';
+    private string $extension = '';
     private bool $avoidDuplicates = false;
 
     private function __construct($inputFilename)
@@ -47,7 +47,12 @@ class FileNameGenerator
         if ($this->suffix != '') {
             $theName .= $this->suffix;
         }
-        $theExtension = $this->inputExtension;
+        if ($this->extension != '') {
+            $theExtension = $this->extension;
+        } else {
+            $theExtension = $this->inputExtension;
+        }
+
         $fullName = $this->inputDir.'/'.$theName.'.'.$theExtension;
 
         if (($this->avoidDuplicates) && (file_exists($fullName))) {
@@ -66,6 +71,12 @@ class FileNameGenerator
     public function avoidDuplicates(): self
     {
         $this->avoidDuplicates = true;
+        return $this;
+    }
+
+    public function withExtension(string $extension)
+    {
+        $this->extension = $extension;
         return $this;
     }
 }
