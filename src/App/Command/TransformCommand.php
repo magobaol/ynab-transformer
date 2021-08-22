@@ -10,6 +10,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Transformer\Popso;
 
 #[AsCommand(
     name: 'app:transform',
@@ -45,6 +46,7 @@ class TransformCommand extends Command
         $sourceFileName = $input->getArgument('input');
         $transformer = match ($input->getOption('format')) {
             'nexi' => new Nexi($sourceFileName),
+            'popso' => new Popso($sourceFileName),
         };
 
         $ynabTransactions = $transformer->transformToYNAB();
