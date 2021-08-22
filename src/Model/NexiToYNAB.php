@@ -7,6 +7,7 @@ use Model\Transaction\YNABTransaction;
 use Model\Transaction\YNABTransactions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class NexiToYNAB
 {
@@ -30,7 +31,10 @@ class NexiToYNAB
             if ($this->nexiFile->getActiveSheet()->getCell(self::COL_TO_CHECK_END.$row)->getValue() == '') {
                 $end = true;
             } else {
-                $date = Carbon::createFromFormat('d/m/Y', $this->nexiFile->getActiveSheet()->getCell('C'.$row)->getValue());
+
+                $this->nexiFile->getActiveSheet()->getStyle('C'.$row)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+                $date = Carbon::createFromFormat('d/m/Y', $this->nexiFile->getActiveSheet()->getCell('C'.$row)->getFormattedValue());
+
                 $payee = $this->nexiFile->getActiveSheet()->getCell('F'.$row)->getValue();
                 $memo = '';
                 $amount = $this->nexiFile->getActiveSheet()->getCell('J'.$row)->getValue();
