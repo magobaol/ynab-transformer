@@ -78,7 +78,7 @@ class Fineco implements Transformer
         return $this->file->getActiveSheet()->getCell(self::COL_TO_CHECK_END . $row)->getValue() != '';
     }
 
-    private function shouldSkipRow(int $row)
+    private function shouldSkipRow(int $row): bool
     {
         return ($this->file->getActiveSheet()->getCell('F' . $row)->getValue() != 'Contabilizzato');
     }
