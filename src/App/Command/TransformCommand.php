@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Transformer\Popso;
+use Transformer\Revolut;
 
 #[AsCommand(
     name: 'app:transform',
@@ -22,7 +23,8 @@ class TransformCommand extends Command
     private static array $formats = [
         'nexi',
         'popso',
-        'fineco'
+        'fineco',
+        'revolut'
     ];
 
     protected function configure(): void
@@ -48,7 +50,8 @@ class TransformCommand extends Command
         $transformer = match ($input->getOption('format')) {
             'nexi' => new Nexi($sourceFileName),
             'popso' => new Popso($sourceFileName),
-            'fineco' => new Fineco($sourceFileName)
+            'fineco' => new Fineco($sourceFileName),
+            'revolut' => new Revolut($sourceFileName)
         };
 
         $ynabTransactions = $transformer->transformToYNAB();
