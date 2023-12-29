@@ -81,6 +81,9 @@ class Revolut implements Transformer
 
     private function getAmount(int $row)
     {
-        return $this->file->getActiveSheet()->getCell('F' . $row)->getValue();
+        //Amount is in column F and can be positive or negative
+        //Fee is in column G and is always positive, so I need to subtract it from the amount
+        return ($this->file->getActiveSheet()->getCell('F' . $row)->getValue()) -
+            ($this->file->getActiveSheet()->getCell('G' . $row)->getValue());
     }
 }

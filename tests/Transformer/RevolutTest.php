@@ -38,7 +38,7 @@ class RevolutTest extends TestCase
             'date' => '2023-10-01',
             'payee' => 'To ANDREA FACE',
             'memo' => '',
-            'outflow' => '10.00',
+            'outflow' => '10.20',
             'inflow' => '0.00'
         ];
         $this->assertEquals($transaction2, $transactions->getByIndex(1)->toArray());
