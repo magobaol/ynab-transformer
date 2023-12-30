@@ -64,7 +64,7 @@ class TransformCommand extends Command
                 ->generate();
 
         $ynabTransactions->toCSVFile($targetFileName);
-        $output->writeln('Transformation completed in '.$targetFileName);
+        $output->writeln($targetFileName);
         return Command::SUCCESS;
     }
 }
