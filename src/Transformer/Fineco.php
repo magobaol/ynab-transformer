@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 class Fineco implements Transformer
 {
     private Spreadsheet $file;
-    private const FIRST_DATA_ROW = 9;
+    private const FIRST_DATA_ROW = 8;
     private const COL_TO_CHECK_END = "A";
 
     public function __construct($inputFilename)
