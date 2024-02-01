@@ -104,8 +104,10 @@ class Fineco implements Transformer
 
         if (str_contains(strtolower($description), 'prelevamento')) {
             $memo .= 'Prelievo';
+        } else {
+            $memo .= $this->file->getActiveSheet()->getCell('E' . $row)->getValue();
         }
-        return $memo;
+        return trim($memo);
     }
 
 }
