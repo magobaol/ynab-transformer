@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Transformer\Popso;
 use Transformer\Revolut;
+use Transformer\Telepass;
 
 #[AsCommand(
     name: 'app:transform',
@@ -24,7 +25,8 @@ class TransformCommand extends Command
         'nexi',
         'popso',
         'fineco',
-        'revolut'
+        'revolut',
+        'telepass'
     ];
 
     protected function configure(): void
@@ -51,7 +53,8 @@ class TransformCommand extends Command
             'nexi' => new Nexi($sourceFileName),
             'popso' => new Popso($sourceFileName),
             'fineco' => new Fineco($sourceFileName),
-            'revolut' => new Revolut($sourceFileName)
+            'revolut' => new Revolut($sourceFileName),
+            'telepass' => new Telepass($sourceFileName)
         };
 
         $ynabTransactions = $transformer->transformToYNAB();
