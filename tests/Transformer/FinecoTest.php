@@ -17,7 +17,7 @@ class FinecoTest extends TestCase
         $transaction1 = [
             'date' => '2021-08-21',
             'payee' => 'AMZN Mktp IT',
-            'memo' => '',
+            'memo' => 'AMZN Mktp IT',
             'outflow' => '11.59',
             'inflow' => '0.00'
         ];
@@ -35,7 +35,7 @@ class FinecoTest extends TestCase
         $transaction3 = [
             'date' => '2021-08-21',
             'payee' => 'Pag. del 20/08/21 ora 16:59 presso: pasticceria',
-            'memo' => '(20/08/2021) ',
+            'memo' => '(20/08/2021) Pag. del 20/08/21 ora 16:59 presso: pasticceria',
             'outflow' => '63.00',
             'inflow' => '0.00'
         ];
@@ -44,7 +44,7 @@ class FinecoTest extends TestCase
         $transaction4 = [
             'date' => '2021-08-11',
             'payee' => 'Ord: Company name Dt-ord: 11/08/2021',
-            'memo' => '',
+            'memo' => 'Ord: Company name Dt-ord: 11/08/2021',
             'outflow' => '0.00',
             'inflow' => '1000.00'
         ];
@@ -53,7 +53,7 @@ class FinecoTest extends TestCase
         $transaction5 = [
             'date' => '2021-08-11',
             'payee' => 'Ord: Company name Dt-ord: 10/08/2021',
-            'memo' => '(10/08/2021) ',
+            'memo' => '(10/08/2021) Ord: Company name Dt-ord: 10/08/2021',
             'outflow' => '0.00',
             'inflow' => '500.00'
         ];
@@ -79,7 +79,7 @@ class FinecoTest extends TestCase
         $transaction1 = [
             'date' => '2021-08-31',
             'payee' => 'AMZN Mktp IT',
-            'memo' => '',
+            'memo' => 'AMZN Mktp IT',
             'outflow' => '15.56',
             'inflow' => '0.00'
         ];
