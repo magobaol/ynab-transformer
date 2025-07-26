@@ -28,7 +28,9 @@ class TransformCommand extends Command
         'popso',
         'fineco',
         'revolut',
-        'telepass'
+        'telepass',
+        'poste',
+        'isybank'
     ];
 
     protected function configure(): void
