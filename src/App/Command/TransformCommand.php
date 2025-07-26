@@ -5,6 +5,7 @@ namespace App\Command;
 use Common\FileNameGenerator;
 use Symfony\Component\Console\Input\InputOption;
 use Transformer\Fineco;
+use Transformer\Isybank;
 use Transformer\Nexi;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Transformer\Popso;
+use Transformer\Poste;
 use Transformer\Revolut;
 use Transformer\Telepass;
 
@@ -54,7 +56,9 @@ class TransformCommand extends Command
             'popso' => new Popso($sourceFileName),
             'fineco' => new Fineco($sourceFileName),
             'revolut' => new Revolut($sourceFileName),
-            'telepass' => new Telepass($sourceFileName)
+            'telepass' => new Telepass($sourceFileName),
+            'poste' => new Poste($sourceFileName),
+            'isybank' => new Isybank($sourceFileName)
         };
 
         $ynabTransactions = $transformer->transformToYNAB();
