@@ -17,7 +17,10 @@ class Popso implements Transformer
 
     public function __construct($inputFilename)
     {
-        $this->file = IOFactory::load($inputFilename);
+        $reader = IOFactory::createReader('Csv');
+        $reader->setDelimiter(';');
+        $reader->setTestAutoDetect(true);
+        $this->file = $reader->load($inputFilename);
     }
 
     public function transformToYNAB(): YNABTransactions
