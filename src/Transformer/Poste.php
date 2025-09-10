@@ -13,6 +13,7 @@ class Poste implements Transformer
 {
     private const FIRST_DATA_ROW = 13;
     private const COL_TO_CHECK_END = "A";
+    private const HEADER_ROW = 12;
 
     private Spreadsheet $file;
 
@@ -23,8 +24,47 @@ class Poste implements Transformer
 
     public static function canHandle(string $filename): bool
     {
-        // TODO: Implement Poste detection logic
-        return false;
+        try {
+            // Check if file exists first
+            if (!file_exists($filename)) {
+                return false;
+            }
+            
+            // Quick file extension check to avoid trying to process obvious non-Excel files
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension !== 'xlsx') {
+                return false;
+            }
+            
+            // Try to load the file as a spreadsheet
+            $testFile = IOFactory::load($filename);
+            
+            // Check if this looks like a Poste file by examining header structure
+            $sheet = $testFile->getActiveSheet();
+            
+            // Check for Poste-specific header structure in HEADER_ROW
+            // Expected headers: Data Contabile, Data Valuta, Addebiti (euro), Accrediti (euro), Descrizione operazioni
+            $expectedHeaders = [
+                'A' . self::HEADER_ROW => 'Data Contabile',
+                'B' . self::HEADER_ROW => 'Data Valuta',
+                'C' . self::HEADER_ROW => 'Addebiti (euro)',
+                'D' . self::HEADER_ROW => 'Accrediti (euro)',
+                'E' . self::HEADER_ROW => 'Descrizione operazioni'
+            ];
+            
+            // Check if all headers match Poste pattern
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                if ($sheet->getCell($cell)->getValue() !== $expectedValue) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (\Throwable $e) {
+            // Silent failure for format detection - this is expected behavior
+            return false;
+        }
     }
 
     public function transformToYNAB(): YNABTransactions

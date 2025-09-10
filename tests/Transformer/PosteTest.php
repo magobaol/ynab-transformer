@@ -70,4 +70,28 @@ class PosteTest extends TestCase
 
     }
 
+    public function test_canHandle_returns_true_for_valid_poste_file()
+    {
+        $canHandle = Poste::canHandle(__DIR__ . '/../Fixtures/movimenti-poste.xlsx');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_poste_file()
+    {
+        $canHandle = Poste::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_csv_file()
+    {
+        $canHandle = Poste::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Poste::canHandle(__DIR__ . '/../Fixtures/nonexistent.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
 }
