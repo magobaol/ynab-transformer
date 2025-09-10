@@ -14,6 +14,7 @@ class Revolut implements Transformer
     private Spreadsheet $file;
     private const FIRST_DATA_ROW = 2;
     private const COL_TO_CHECK_END = "A";
+    private const HEADER_ROW = 1;
 
     public function __construct($inputFilename)
     {
@@ -22,8 +23,52 @@ class Revolut implements Transformer
 
     public static function canHandle(string $filename): bool
     {
-        // TODO: Implement Revolut detection logic
-        return false;
+        try {
+            // Check if file exists first
+            if (!file_exists($filename)) {
+                return false;
+            }
+            
+            // Quick file extension check to avoid trying to process obvious non-CSV files
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension !== 'csv') {
+                return false;
+            }
+            
+            // Try to load the file as a spreadsheet
+            $testFile = IOFactory::load($filename);
+            
+            // Check if this looks like a Revolut file by examining header structure
+            $sheet = $testFile->getActiveSheet();
+            
+            // Check for Revolut-specific header structure in HEADER_ROW
+            // Expected headers: Type, Product, Started Date, Completed Date, Description, Amount, Fee, Currency, State, Balance
+            $expectedHeaders = [
+                'A' . self::HEADER_ROW => 'Type',
+                'B' . self::HEADER_ROW => 'Product',
+                'C' . self::HEADER_ROW => 'Started Date',
+                'D' . self::HEADER_ROW => 'Completed Date',
+                'E' . self::HEADER_ROW => 'Description',
+                'F' . self::HEADER_ROW => 'Amount',
+                'G' . self::HEADER_ROW => 'Fee',
+                'H' . self::HEADER_ROW => 'Currency',
+                'I' . self::HEADER_ROW => 'State',
+                'J' . self::HEADER_ROW => 'Balance'
+            ];
+            
+            // Check if all headers match Revolut pattern
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                if ($sheet->getCell($cell)->getValue() !== $expectedValue) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (\Throwable $e) {
+            // Silent failure for format detection - this is expected behavior
+            return false;
+        }
     }
 
     public function transformToYNAB(): YNABTransactions

@@ -71,4 +71,35 @@ class RevolutTest extends TestCase
         $this->assertEquals($transaction5, $transactions->getByIndex(4)->toArray());
 
     }
+
+    public function test_canHandle_returns_true_for_valid_revolut_file()
+    {
+        $canHandle = Revolut::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_true_for_valid_revolut_not_completed_file()
+    {
+        $canHandle = Revolut::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut-not-completed.csv');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_revolut_file()
+    {
+        $canHandle = Revolut::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_excel_file()
+    {
+        $canHandle = Revolut::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Revolut::canHandle(__DIR__ . '/../Fixtures/nonexistent.csv');
+        $this->assertFalse($canHandle);
+    }
+
 }
