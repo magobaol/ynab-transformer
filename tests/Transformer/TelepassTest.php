@@ -36,4 +36,29 @@ class TelepassTest extends TestCase
         $this->assertEquals($transaction2, $transactions->getByIndex(1)->toArray());
 
     }
+
+    public function test_canHandle_returns_true_for_valid_telepass_file()
+    {
+        $canHandle = Telepass::canHandle(__DIR__ . '/../Fixtures/movimenti-telepass.xls');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_telepass_file()
+    {
+        $canHandle = Telepass::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_csv_file()
+    {
+        $canHandle = Telepass::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Telepass::canHandle(__DIR__ . '/../Fixtures/nonexistent.xls');
+        $this->assertFalse($canHandle);
+    }
+
 }
