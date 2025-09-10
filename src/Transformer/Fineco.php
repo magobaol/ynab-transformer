@@ -15,6 +15,7 @@ class Fineco implements Transformer
     private Spreadsheet $file;
     private const FIRST_DATA_ROW = 8;
     private const COL_TO_CHECK_END = "A";
+    private const HEADER_ROW = 7;
 
     public function __construct($inputFilename)
     {
@@ -23,8 +24,49 @@ class Fineco implements Transformer
 
     public static function canHandle(string $filename): bool
     {
-        // TODO: Implement Fineco detection logic
-        return false;
+        try {
+            // Check if file exists first
+            if (!file_exists($filename)) {
+                return false;
+            }
+            
+            // Quick file extension check to avoid trying to process obvious non-Excel files
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension !== 'xlsx') {
+                return false;
+            }
+            
+            // Try to load the file as a spreadsheet
+            $testFile = IOFactory::load($filename);
+            
+            // Check if this looks like a Fineco file by examining header structure
+            $sheet = $testFile->getActiveSheet();
+            
+            // Check for Fineco-specific header structure in HEADER_ROW
+            // Expected headers: Data, Entrate, Uscite, Descrizione, Descrizione Completa, Stato, Moneymap
+            $expectedHeaders = [
+                'A' . self::HEADER_ROW => 'Data',
+                'B' . self::HEADER_ROW => 'Entrate',
+                'C' . self::HEADER_ROW => 'Uscite',
+                'D' . self::HEADER_ROW => 'Descrizione',
+                'E' . self::HEADER_ROW => 'Descrizione Completa',
+                'F' . self::HEADER_ROW => 'Stato',
+                'G' . self::HEADER_ROW => 'Moneymap'
+            ];
+            
+            // Check if all headers match Fineco pattern
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                if ($sheet->getCell($cell)->getValue() !== $expectedValue) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (\Throwable $e) {
+            // Silent failure for format detection - this is expected behavior
+            return false;
+        }
     }
 
     public function transformToYNAB(): YNABTransactions
