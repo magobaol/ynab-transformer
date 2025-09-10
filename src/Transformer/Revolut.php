@@ -20,6 +20,12 @@ class Revolut implements Transformer
         $this->file = IOFactory::load($inputFilename);
     }
 
+    public static function canHandle(string $filename): bool
+    {
+        // TODO: Implement Revolut detection logic
+        return false;
+    }
+
     public function transformToYNAB(): YNABTransactions
     {
         $YNABTransactions = new YNABTransactions();

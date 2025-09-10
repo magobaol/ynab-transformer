@@ -21,6 +21,12 @@ class Isybank implements Transformer
         $this->file = IOFactory::load($inputFilename);
     }
 
+    public static function canHandle(string $filename): bool
+    {
+        // TODO: Implement Isybank detection logic
+        return false;
+    }
+
     public function transformToYNAB(): YNABTransactions
     {
         $YNABTransactions = new YNABTransactions();

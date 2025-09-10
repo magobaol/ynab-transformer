@@ -21,6 +21,12 @@ class Fineco implements Transformer
         $this->file = IOFactory::load($inputFilename);
     }
 
+    public static function canHandle(string $filename): bool
+    {
+        // TODO: Implement Fineco detection logic
+        return false;
+    }
+
     public function transformToYNAB(): YNABTransactions
     {
         $YNABTransactions = new YNABTransactions();
