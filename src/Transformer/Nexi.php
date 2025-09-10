@@ -13,6 +13,7 @@ class Nexi implements Transformer
 {
     private const FIRST_DATA_ROW = 11;
     private const COL_TO_CHECK_END = "B";
+    private const HEADER_ROW = 10;
 
     private Spreadsheet $file;
 
@@ -23,8 +24,54 @@ class Nexi implements Transformer
 
     public static function canHandle(string $filename): bool
     {
-        // TODO: Implement Nexi detection logic
-        return false;
+        try {
+            // Check if file exists first
+            if (!file_exists($filename)) {
+                return false;
+            }
+            
+            // Quick file extension check to avoid trying to process obvious non-Excel files
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension !== 'xlsx') {
+                return false;
+            }
+            
+            // Try to load the file as a spreadsheet
+            $testFile = IOFactory::load($filename);
+            
+            // Check if this looks like a Nexi file by examining header structure
+            $sheet = $testFile->getActiveSheet();
+            
+            // Check for Nexi-specific header structure in HEADER_ROW (shifted to column B)
+            // Expected headers: Mese, Data, Riferimento, Categorie, Descrizione, Stato, Importo originale in Divisa, Divisa, Importo (€), Cambio applicato (€), Commisione Nexi (€), Commissione circuiti (€)
+            $expectedHeaders = [
+                'B' . self::HEADER_ROW => 'Mese',
+                'C' . self::HEADER_ROW => 'Data',
+                'D' . self::HEADER_ROW => 'Riferimento',
+                'E' . self::HEADER_ROW => 'Categorie',
+                'F' . self::HEADER_ROW => 'Descrizione',
+                'G' . self::HEADER_ROW => 'Stato',
+                'H' . self::HEADER_ROW => 'Importo originale in Divisa',
+                'I' . self::HEADER_ROW => 'Divisa',
+                'J' . self::HEADER_ROW => 'Importo (€)',
+                'K' . self::HEADER_ROW => 'Cambio applicato (€)',
+                'L' . self::HEADER_ROW => 'Commisione Nexi (€)',
+                'M' . self::HEADER_ROW => 'Commissione circuiti (€)'
+            ];
+            
+            // Check if all headers match Nexi pattern
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                if ($sheet->getCell($cell)->getValue() !== $expectedValue) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (\Throwable $e) {
+            // Silent failure for format detection - this is expected behavior
+            return false;
+        }
     }
 
     public function transformToYNAB(): YNABTransactions
