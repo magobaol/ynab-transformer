@@ -23,6 +23,12 @@ class Popso implements Transformer
         $this->file = $reader->load($inputFilename);
     }
 
+    public static function canHandle(string $filename): bool
+    {
+        // TODO: Implement Popso detection logic
+        return false;
+    }
+
     public function transformToYNAB(): YNABTransactions
     {
         $YNABTransactions = new YNABTransactions();
