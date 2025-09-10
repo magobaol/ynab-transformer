@@ -87,4 +87,34 @@ class FinecoTest extends TestCase
 
     }
 
+    public function test_canHandle_returns_true_for_valid_fineco_file()
+    {
+        $canHandle = Fineco::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertTrue($canHandle);
     }
+
+    public function test_canHandle_returns_true_for_valid_fineco_test_file()
+    {
+        $canHandle = Fineco::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco-test-contabilizzati.xlsx');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_fineco_file()
+    {
+        $canHandle = Fineco::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_excel_file()
+    {
+        $canHandle = Fineco::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Fineco::canHandle(__DIR__ . '/../Fixtures/nonexistent.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+}
