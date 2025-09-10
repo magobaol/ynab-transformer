@@ -14,6 +14,7 @@ class Popso implements Transformer
     private Spreadsheet $file;
     private const FIRST_DATA_ROW = 2;
     private const COL_TO_CHECK_END = "A";
+    private const HEADER_ROW = 1;
 
     public function __construct($inputFilename)
     {
@@ -25,8 +26,51 @@ class Popso implements Transformer
 
     public static function canHandle(string $filename): bool
     {
-        // TODO: Implement Popso detection logic
-        return false;
+        try {
+            // Check if file exists first
+            if (!file_exists($filename)) {
+                return false;
+            }
+            
+            // Quick file extension check to avoid trying to process obvious non-CSV files
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension !== 'csv') {
+                return false;
+            }
+            
+            // Try to load the file as a CSV with semicolon delimiter
+            $reader = IOFactory::createReader('Csv');
+            $reader->setDelimiter(';');
+            $reader->setTestAutoDetect(true);
+            $testFile = $reader->load($filename);
+            
+            // Check if this looks like a Popso file by examining header structure
+            $sheet = $testFile->getActiveSheet();
+            
+            // Check for Popso-specific header structure in HEADER_ROW
+            // Expected headers: Data, Valuta, Causale, Descrizione, Importo, Divisa
+            $expectedHeaders = [
+                'A' . self::HEADER_ROW => 'Data',
+                'B' . self::HEADER_ROW => 'Valuta',
+                'C' . self::HEADER_ROW => 'Causale',
+                'D' . self::HEADER_ROW => 'Descrizione',
+                'E' . self::HEADER_ROW => 'Importo',
+                'F' . self::HEADER_ROW => 'Divisa'
+            ];
+            
+            // Check if all headers match Popso pattern
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                if ($sheet->getCell($cell)->getValue() !== $expectedValue) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (\Throwable $e) {
+            // Silent failure for format detection - this is expected behavior
+            return false;
+        }
     }
 
     public function transformToYNAB(): YNABTransactions

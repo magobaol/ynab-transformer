@@ -78,4 +78,35 @@ class PopsoTest extends TestCase
         ];
         $this->assertEquals($transaction6, $transactions->getByIndex(5)->toArray());
     }
+
+    public function test_canHandle_returns_true_for_valid_popso_file()
+    {
+        $canHandle = Popso::canHandle(__DIR__ . '/../Fixtures/movimenti-popso.csv');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_true_for_valid_popso_solo_saldi_file()
+    {
+        $canHandle = Popso::canHandle(__DIR__ . '/../Fixtures/movimenti-popso-solo-saldi.csv');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_popso_file()
+    {
+        $canHandle = Popso::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_different_csv_file()
+    {
+        $canHandle = Popso::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Popso::canHandle(__DIR__ . '/../Fixtures/nonexistent.csv');
+        $this->assertFalse($canHandle);
+    }
+
 }
