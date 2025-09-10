@@ -35,4 +35,29 @@ class NexiTest extends TestCase
         $this->assertEquals($transaction2, $transactions->getByIndex(1)->toArray());
 
     }
+
+    public function test_canHandle_returns_true_for_valid_nexi_file()
+    {
+        $canHandle = Nexi::canHandle(__DIR__ . '/../Fixtures/movimenti-nexi.xlsx');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_nexi_file()
+    {
+        $canHandle = Nexi::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_csv_file()
+    {
+        $canHandle = Nexi::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Nexi::canHandle(__DIR__ . '/../Fixtures/nonexistent.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
 }
