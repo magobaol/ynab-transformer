@@ -13,6 +13,7 @@ class Isybank implements Transformer
 {
     private const FIRST_DATA_ROW = 15;
     private const COL_TO_CHECK_END = "A";
+    private const HEADER_ROW = 14;
 
     private Spreadsheet $file;
 
@@ -23,8 +24,52 @@ class Isybank implements Transformer
 
     public static function canHandle(string $filename): bool
     {
-        // TODO: Implement Isybank detection logic
-        return false;
+        try {
+            // Check if file exists first
+            if (!file_exists($filename)) {
+                return false;
+            }
+            
+            // Quick file extension check to avoid trying to process obvious non-Excel files
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension !== 'xlsx') {
+                return false;
+            }
+            
+            // Try to load the file as a spreadsheet
+            $testFile = IOFactory::load($filename);
+            
+            // Check if this looks like an Isybank file by examining header structure
+            $sheet = $testFile->getActiveSheet();
+            
+            // Check for Isybank-specific header structure in HEADER_ROW
+            // Expected headers: Data, Operazione, Dettagli, Conto o carta, Contabilizzazione, Categoria, Valuta, Importo
+            $expectedHeaders = [
+                'A' . self::HEADER_ROW => 'Data',
+                'B' . self::HEADER_ROW => 'Operazione',
+                'C' . self::HEADER_ROW => 'Dettagli',
+                'D' . self::HEADER_ROW => 'Conto o carta',
+                'E' . self::HEADER_ROW => 'Contabilizzazione',
+                'F' . self::HEADER_ROW => 'Categoria',
+                'G' . self::HEADER_ROW => 'Valuta',
+                'H' . self::HEADER_ROW => 'Importo'
+            ];
+            
+            // Check if all headers match Isybank pattern
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                $cellValue = $sheet->getCell($cell)->getValue();
+                $actualValue = trim($cellValue ?? '');
+                if ($actualValue !== $expectedValue) {
+                    return false;
+                }
+            }
+            
+            return true;
+            
+        } catch (\Throwable $e) {
+            // Silent failure for format detection - this is expected behavior
+            return false;
+        }
     }
 
     public function transformToYNAB(): YNABTransactions

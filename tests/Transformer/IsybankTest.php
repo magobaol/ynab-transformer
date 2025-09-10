@@ -70,4 +70,34 @@ class IsybankTest extends TestCase
 
     }
 
+    public function test_canHandle_returns_true_for_valid_isybank_file()
+    {
+        $canHandle = Isybank::canHandle(__DIR__ . '/../Fixtures/movimenti-isybank.xlsx');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_true_for_valid_isybank_test_file()
+    {
+        $canHandle = Isybank::canHandle(__DIR__ . '/../Fixtures/movimenti-isybank-test-contabilizzati.xlsx');
+        $this->assertTrue($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_non_isybank_file()
+    {
+        $canHandle = Isybank::canHandle(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_csv_file()
+    {
+        $canHandle = Isybank::canHandle(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $this->assertFalse($canHandle);
+    }
+
+    public function test_canHandle_returns_false_for_nonexistent_file()
+    {
+        $canHandle = Isybank::canHandle(__DIR__ . '/../Fixtures/nonexistent.xlsx');
+        $this->assertFalse($canHandle);
+    }
+
 }
