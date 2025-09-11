@@ -8,6 +8,7 @@ The YNAB Transformer currently exists as a console-only application that convert
 
 ### Business Requirements
 - Add a web interface to make the tool accessible to non-technical users
+- Enhance console functionality with automatic format detection
 - Maintain backward compatibility with existing console functionality
 - Deploy as a subdirectory application within an existing domain (`/ynab-transformer/`)
 - Provide automatic format detection to eliminate user confusion
@@ -26,7 +27,7 @@ The YNAB Transformer currently exists as a console-only application that convert
 ### Architecture Pattern: Service Layer Extraction
 We will implement a **service-oriented architecture** that extracts business logic into reusable services, allowing both console and web interfaces to utilize the same core functionality.
 
-**Rationale**: This approach avoids code duplication, maintains the existing console application unchanged, and creates a clean foundation for web functionality.
+**Rationale**: This approach avoids code duplication, enhances the existing console application with auto-detection, and creates a clean foundation for web functionality.
 
 ### Auto-Detection Strategy: Full Structure Analysis
 We will implement format detection by having each transformer test if it can handle a given file:
@@ -36,6 +37,15 @@ We will implement format detection by having each transformer test if it can han
 - Provides user-friendly hints when no format detected
 
 **Rationale**: Performance impact is acceptable for typical small files (<500 transactions). This approach is more reliable than header-only analysis and reuses existing transformation logic.
+
+### Console Command Enhancement: Optional Auto-Detection
+The console command will be enhanced to support automatic format detection while maintaining full backward compatibility:
+- Make `--format` parameter optional (currently required)
+- When `--format` not provided: use `TransformerFactory::detectFormat()` for auto-detection
+- When `--format` provided: maintain existing behavior (backward compatibility)
+- Display detected format to user for transparency
+
+**Rationale**: This provides immediate value to console users, validates the auto-detection system in real-world usage, and maintains complete backward compatibility for existing scripts and workflows.
 
 ### Frontend Technology Stack
 - **Alpine.js**: Lightweight reactive framework for all client-side functionality
@@ -70,7 +80,8 @@ somedomain.com/
 
 ### Positive Consequences
 - **Accessibility**: Non-technical users can utilize the tool through web interface
-- **Usability**: Automatic format detection eliminates user confusion
+- **Usability**: Automatic format detection eliminates user confusion for both console and web users
+- **Console Enhancement**: Existing console users benefit from auto-detection without breaking changes
 - **Maintainability**: Service layer architecture promotes code reuse and testing
 - **Security**: Comprehensive protection against abuse while maintaining privacy
 - **Scalability**: Architecture supports future enhancements and additional formats
@@ -86,7 +97,8 @@ somedomain.com/
 - **Testing**: Comprehensive test suite for both console and web functionality
 - **Documentation**: Detailed developer documentation for maintenance and enhancement
 - **Monitoring**: Health check endpoint and log rotation for operational visibility
-- **Gradual Rollout**: Maintain console application unchanged during web interface development
+- **Gradual Rollout**: Enhance console application first, then add web interface
+- **Backward Compatibility**: All existing console usage patterns continue to work unchanged
 
 ## Alternatives Considered
 
@@ -106,7 +118,7 @@ somedomain.com/
 - [002-web-interface-implementation-plan.md](./002-web-interface-implementation-plan.md) - Detailed technical implementation guide and development phases
 
 ## Related Decisions
-- Console application functionality remains unchanged
+- Console application enhanced with auto-detection while maintaining full backward compatibility
 - Privacy-first approach with immediate file deletion
 - Traditional web hosting compatibility maintained
 - Bootstrap default styling approach for rapid development
