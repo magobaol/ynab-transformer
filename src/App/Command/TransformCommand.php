@@ -4,18 +4,12 @@ namespace App\Command;
 
 use Common\FileNameGenerator;
 use Symfony\Component\Console\Input\InputOption;
-use Transformer\Fineco;
-use Transformer\Isybank;
-use Transformer\Nexi;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Transformer\Popso;
-use Transformer\Poste;
-use Transformer\Revolut;
-use Transformer\Telepass;
+use Transformer\TransformerFactory;
 
 #[AsCommand(
     name: 'app:transform',
@@ -23,45 +17,50 @@ use Transformer\Telepass;
 )]
 class TransformCommand extends Command
 {
-    private static array $formats = [
-        'nexi',
-        'popso',
-        'fineco',
-        'revolut',
-        'telepass',
-        'poste',
-        'isybank'
-    ];
 
     protected function configure(): void
     {
         $this
-            ->addArgument('input', InputArgument::REQUIRED, 'The input file in Nexi format')
-            ->addOption('format', null, InputOption::VALUE_REQUIRED);
+            ->addArgument('input', InputArgument::REQUIRED, 'The input file to transform')
+            ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The bank format (optional - will auto-detect if not specified)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$input->getOption('format')) {
-            $output->writeln('You have to specify the format with --format');
-            return Command::INVALID;
-        }
-
-        if (!in_array($input->getOption('format'), self::$formats)) {
-            $output->writeln('Accepted formats are '.implode(', ', self::$formats));
-            return Command::INVALID;
-        }
-
         $sourceFileName = $input->getArgument('input');
-        $transformer = match ($input->getOption('format')) {
-            'nexi' => new Nexi($sourceFileName),
-            'popso' => new Popso($sourceFileName),
-            'fineco' => new Fineco($sourceFileName),
-            'revolut' => new Revolut($sourceFileName),
-            'telepass' => new Telepass($sourceFileName),
-            'poste' => new Poste($sourceFileName),
-            'isybank' => new Isybank($sourceFileName)
-        };
+        $format = $input->getOption('format');
+
+        // If format is specified, validate it and use it
+        if ($format) {
+            $supportedFormats = TransformerFactory::getSupportedFormats();
+            if (!in_array($format, $supportedFormats)) {
+                $output->writeln('Accepted formats are '.implode(', ', $supportedFormats));
+                return Command::INVALID;
+            }
+            
+            // When format is specified, validate that the detected format matches
+            try {
+                $detectedFormat = TransformerFactory::detectFormat($sourceFileName);
+                if ($detectedFormat !== $format) {
+                    $output->writeln("Warning: File appears to be '{$detectedFormat}' format, but '{$format}' was specified. Using specified format.");
+                }
+                $transformer = $this->createTransformerByFormat($format, $sourceFileName);
+            } catch (\Exception $e) {
+                // If auto-detection fails but format is specified, still try to use the specified format
+                $transformer = $this->createTransformerByFormat($format, $sourceFileName);
+            }
+        } else {
+            // Auto-detect format
+            try {
+                $detectedFormat = TransformerFactory::detectFormat($sourceFileName);
+                $output->writeln("Format '{$detectedFormat}' detected, processing...");
+                $transformer = TransformerFactory::create($sourceFileName);
+            } catch (\Exception $e) {
+                $supportedFormats = implode(', ', TransformerFactory::getSupportedFormats());
+                $output->writeln("No supported format detected. Supported formats: {$supportedFormats}");
+                return Command::FAILURE;
+            }
+        }
 
         $ynabTransactions = $transformer->transformToYNAB();
 
@@ -75,5 +74,26 @@ class TransformCommand extends Command
         $ynabTransactions->toCSVFile($targetFileName);
         $output->writeln($targetFileName);
         return Command::SUCCESS;
+    }
+
+    private function createTransformerByFormat(string $format, string $sourceFileName): object
+    {
+        // Import the transformer classes
+        $transformerClasses = [
+            'fineco' => \Transformer\Fineco::class,
+            'revolut' => \Transformer\Revolut::class,
+            'nexi' => \Transformer\Nexi::class,
+            'popso' => \Transformer\Popso::class,
+            'poste' => \Transformer\Poste::class,
+            'telepass' => \Transformer\Telepass::class,
+            'isybank' => \Transformer\Isybank::class,
+        ];
+
+        if (!isset($transformerClasses[$format])) {
+            throw new \InvalidArgumentException("Unknown format: {$format}");
+        }
+
+        $transformerClass = $transformerClasses[$format];
+        return new $transformerClass($sourceFileName);
     }
 }
