@@ -20,7 +20,28 @@ This document provides detailed technical implementation steps for adding a web 
   - Return `true` if file can be processed, `false` if errors occur
   - Handle exceptions gracefully during detection
 
-### **1.2 Service Layer Extraction**
+### **1.2 Console Command Auto-Detection Enhancement**
+- **Update `TransformCommand`** to support automatic format detection:
+  - Make `--format` parameter optional (currently required)
+  - When `--format` not provided: use `TransformerFactory::detectFormat()` for auto-detection
+  - When `--format` provided: maintain existing behavior (backward compatibility)
+  - Display detected format to user: `"Format 'fineco' detected, processing..."`
+  
+- **Enhanced error handling and messaging**:
+  - "No supported format detected. Supported formats: fineco, revolut, nexi, popso, poste, telepass, isybank"
+  - "Multiple formats detected. Please specify manually with --format=<format>"
+  - Clear success messages showing detected vs. specified format
+  
+- **Usage examples**:
+  ```bash
+  # Auto-detection (new behavior)
+  php bin/console app:transform input_file.xlsx
+  
+  # Manual format specification (existing behavior, unchanged)
+  php bin/console app:transform input_file.xlsx --format=fineco
+  ```
+
+### **1.3 Service Layer Extraction**
 - **Create `TransformationService`**:
   - Orchestrates the transformation process
   - Uses TransformerFactory for auto-detection
@@ -31,13 +52,13 @@ This document provides detailed technical implementation steps for adding a web 
   - Generates CSV download responses
   - Manages file cleanup (immediate deletion after processing)
   
-- **Create `TransformerFactory`**:
+- **Create `TransformerFactory`** (already implemented in 1.1):
   - Implements auto-detection logic using `canHandle()` methods
   - Tests formats in popularity order: `['fineco', 'revolut', 'nexi', 'popso', 'poste', 'telepass', 'isybank']`
   - Ensures only one format matches (throws exception if multiple matches)
   - Provides hints when no format detected
 
-### **1.3 Web Dependencies**
+### **1.4 Web Dependencies**
 - Add Symfony HTTP components to `composer.json`:
   - `symfony/http-foundation`
   - `symfony/http-kernel`
