@@ -6,14 +6,17 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Controller\TransformController;
+use App\Service\FileProcessingService;
 
 class TransformControllerTest extends TestCase
 {
     private TransformController $controller;
+    private FileProcessingService $fileProcessingService;
 
     protected function setUp(): void
     {
-        $this->controller = new TransformController();
+        $this->fileProcessingService = $this->createMock(FileProcessingService::class);
+        $this->controller = new TransformController($this->fileProcessingService);
     }
 
     public function test_index_returns_response()

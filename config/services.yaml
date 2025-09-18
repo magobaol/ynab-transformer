@@ -27,12 +27,12 @@ services:
         tags: ['controller.service_arguments']
 
     # Service definitions for web interface
-    App\Service\TransformerFactory:
-        class: App\Service\TransformerFactory
+    Transformer\TransformerFactory:
+        class: Transformer\TransformerFactory
 
     App\Service\TransformationService:
         arguments:
-            $transformerFactory: '@App\Service\TransformerFactory'
+            $transformerFactory: '@Transformer\TransformerFactory'
 
     App\Service\FileProcessingService:
         arguments:
