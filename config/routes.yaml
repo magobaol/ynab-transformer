@@ -3,6 +3,11 @@ app_transform_index:
     controller: App\Controller\TransformController::index
     methods: [GET]
 
+app_transform_upload:
+    path: /transform
+    controller: App\Controller\TransformController::transform
+    methods: [POST]
+
 app_health_check:
     path: /health/
     controller: App\Controller\TransformController::health

@@ -85,11 +85,16 @@ class FileProcessingService
      */
     private function generateCsvFile(string $originalFilePath, YNABTransactions $transactions): string
     {
-        $fileNameGenerator = new FileNameGenerator();
-        $csvFilePath = $fileNameGenerator->generate($originalFilePath);
+        $fileNameGenerator = FileNameGenerator::fromSourceFilename($originalFilePath)
+            ->withSuffix('-to-ynab')
+            ->withExtension('csv')
+            ->avoidDuplicates();
+        $csvFilePath = $fileNameGenerator->generate();
         
-        if (!$transactions->saveToFile($csvFilePath)) {
-            throw new \Exception('Failed to generate CSV file');
+        try {
+            $transactions->toCSVFile($csvFilePath);
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to generate CSV file: ' . $e->getMessage());
         }
 
         return $csvFilePath;
@@ -107,9 +112,8 @@ class FileProcessingService
     {
         $response = new BinaryFileResponse($filePath);
         
-        // Generate a clean download filename
-        $baseName = pathinfo($originalFileName, PATHINFO_FILENAME);
-        $downloadFileName = $baseName . '-to-ynab-' . $format . '.csv';
+        // Use the filename from the generated CSV file
+        $downloadFileName = basename($filePath);
         
         $response->setContentDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
