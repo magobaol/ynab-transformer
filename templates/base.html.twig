@@ -1,16 +1,102 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
-
-        {% block javascripts %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}YNAB Transformer{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            transition: all 0.3s ease;
+        }
+        .upload-area.dragover {
+            background-color: #f0f9ff;
+            border-color: #3b82f6;
+            transform: scale(1.02);
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center">
+                <p class="text-gray-600 text-sm">
+                    Made with <i class="fas fa-heart text-red-500"></i> by 
+                    <span class="font-semibold text-gray-800">Francesco Face</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Global JavaScript functions
+        function showProgress() {
+            document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('upload-form').classList.add('hidden');
+        }
+        
+        function hideProgress() {
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('upload-form').classList.remove('hidden');
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            hideProgress();
+            enableInterface();
+        }
+        
+        function hideError() {
+            document.getElementById('error-message').classList.add('hidden');
+        }
+        
+        function showSuccess() {
+            const successDiv = document.getElementById('success-message');
+            successDiv.classList.remove('hidden');
+            // Auto-hide after 4 seconds
+            setTimeout(() => {
+                successDiv.classList.add('hidden');
+            }, 4000);
+        }
+        
+        function hideSuccess() {
+            document.getElementById('success-message').classList.add('hidden');
+        }
+        
+        function disableInterface() {
+            document.getElementById('upload-area').style.pointerEvents = 'none';
+            document.getElementById('upload-area').style.opacity = '0.6';
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('file-input').disabled = true;
+        }
+        
+        function enableInterface() {
+            document.getElementById('upload-area').style.pointerEvents = 'auto';
+            document.getElementById('upload-area').style.opacity = '1';
+            document.getElementById('file-input').disabled = false;
+            // Submit button stays disabled until file is selected
+            document.getElementById('submit-btn').disabled = true;
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
 </html>

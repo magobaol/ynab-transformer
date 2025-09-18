@@ -171,6 +171,7 @@ class FileProcessingService
             'application/vnd.ms-excel', // .xls
             'text/csv', // .csv
             'application/csv', // .csv
+            'text/plain', // .csv (common MIME type for CSV files)
         ];
         
         if (!in_array($uploadedFile->getMimeType(), $allowedMimeTypes)) {
@@ -178,6 +179,16 @@ class FileProcessingService
         }
 
         return true;
+    }
+
+    /**
+     * Get list of supported bank formats
+     * 
+     * @return array List of supported format names
+     */
+    public function getSupportedFormats(): array
+    {
+        return $this->transformationService->getSupportedFormats();
     }
 }
 
