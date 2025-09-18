@@ -72,58 +72,58 @@ class TransformerFactoryTest extends TestCase
 
     public function test_create_returns_fineco_transformer_for_fineco_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
+        $transformer = TransformerFactory::create('fineco', __DIR__ . '/../Fixtures/movimenti-fineco.xlsx');
         $this->assertInstanceOf(Fineco::class, $transformer);
     }
 
     public function test_create_returns_revolut_transformer_for_revolut_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-revolut.csv');
+        $transformer = TransformerFactory::create('revolut', __DIR__ . '/../Fixtures/movimenti-revolut.csv');
         $this->assertInstanceOf(Revolut::class, $transformer);
     }
 
     public function test_create_returns_nexi_transformer_for_nexi_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-nexi.xlsx');
+        $transformer = TransformerFactory::create('nexi', __DIR__ . '/../Fixtures/movimenti-nexi.xlsx');
         $this->assertInstanceOf(Nexi::class, $transformer);
     }
 
     public function test_create_returns_popso_transformer_for_popso_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-popso.csv');
+        $transformer = TransformerFactory::create('popso', __DIR__ . '/../Fixtures/movimenti-popso.csv');
         $this->assertInstanceOf(Popso::class, $transformer);
     }
 
     public function test_create_returns_poste_transformer_for_poste_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-poste.xlsx');
+        $transformer = TransformerFactory::create('poste', __DIR__ . '/../Fixtures/movimenti-poste.xlsx');
         $this->assertInstanceOf(Poste::class, $transformer);
     }
 
     public function test_create_returns_telepass_transformer_for_telepass_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-telepass.xls');
+        $transformer = TransformerFactory::create('telepass', __DIR__ . '/../Fixtures/movimenti-telepass.xls');
         $this->assertInstanceOf(Telepass::class, $transformer);
     }
 
     public function test_create_returns_isybank_transformer_for_isybank_file()
     {
-        $transformer = TransformerFactory::create(__DIR__ . '/../Fixtures/movimenti-isybank.xlsx');
+        $transformer = TransformerFactory::create('isybank', __DIR__ . '/../Fixtures/movimenti-isybank.xlsx');
         $this->assertInstanceOf(Isybank::class, $transformer);
     }
 
     public function test_create_throws_exception_for_unknown_format()
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('No supported format detected');
-        TransformerFactory::create(__DIR__ . '/../Fixtures/filename.xlsx');
+        $this->expectExceptionMessage('Unsupported format');
+        TransformerFactory::create('unknown', __DIR__ . '/../Fixtures/filename.xlsx');
     }
 
     public function test_create_throws_exception_for_nonexistent_file()
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('No supported format detected');
-        TransformerFactory::create(__DIR__ . '/../Fixtures/nonexistent.xlsx');
+        $this->expectExceptionMessage('Unsupported format');
+        TransformerFactory::create('unknown', __DIR__ . '/../Fixtures/nonexistent.xlsx');
     }
 
     public function test_getSupportedFormats_returns_all_supported_formats()
