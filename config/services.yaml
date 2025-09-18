@@ -21,5 +21,23 @@ services:
             - '../src/Kernel.php'
             - '../src/Tests/'
 
+    # Controller definitions
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+    # Service definitions for web interface
+    App\Service\TransformerFactory:
+        class: App\Service\TransformerFactory
+
+    App\Service\TransformationService:
+        arguments:
+            $transformerFactory: '@App\Service\TransformerFactory'
+
+    App\Service\FileProcessingService:
+        arguments:
+            $transformationService: '@App\Service\TransformationService'
+            $tempDir: '%kernel.project_dir%/var/tmp'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
