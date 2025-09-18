@@ -49,7 +49,7 @@ class FileProcessingServiceTest extends TestCase
 
     public function test_validateUploadedFile_with_file_too_large_returns_false()
     {
-        $file = $this->createMockUploadedFile('large.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 2097152); // 2MB
+        $file = $this->createMockUploadedFile('large.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1048577); // Just over 1MB
 
         $result = $this->service->validateUploadedFile($file);
 
