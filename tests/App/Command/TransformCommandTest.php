@@ -22,25 +22,39 @@ class TransformCommandTest extends TestCase
         $this->commandTester = new CommandTester($command);
     }
 
+    protected function tearDown(): void
+    {
+        // Clean up any generated CSV files in fixtures directory
+        $fixturesDir = __DIR__ . '/../../Fixtures/';
+        $pattern = $fixturesDir . '*-to-ynab*.csv';
+        $files = glob($pattern);
+        foreach ($files as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+            }
+        }
+    }
+
+
     public function test_command_with_format_parameter_works_as_before()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-fineco.xlsx',
             '--format' => 'fineco'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('.csv', $output);
     }
 
     public function test_command_without_format_parameter_auto_detects_fineco()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-fineco.xlsx'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'fineco' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -48,11 +62,11 @@ class TransformCommandTest extends TestCase
 
     public function test_command_without_format_parameter_auto_detects_revolut()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-revolut.csv'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'revolut' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -60,11 +74,11 @@ class TransformCommandTest extends TestCase
 
     public function test_command_without_format_parameter_auto_detects_nexi()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-nexi.xlsx'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'nexi' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -72,11 +86,11 @@ class TransformCommandTest extends TestCase
 
     public function test_command_without_format_parameter_auto_detects_popso()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-popso.csv'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'popso' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -84,11 +98,11 @@ class TransformCommandTest extends TestCase
 
     public function test_command_without_format_parameter_auto_detects_poste()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-poste.xlsx'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'poste' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -96,11 +110,11 @@ class TransformCommandTest extends TestCase
 
     public function test_command_without_format_parameter_auto_detects_telepass()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-telepass.xls'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'telepass' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -108,11 +122,11 @@ class TransformCommandTest extends TestCase
 
     public function test_command_without_format_parameter_auto_detects_isybank()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-isybank.xlsx'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Format 'isybank' detected, processing...", $output);
         $this->assertStringContainsString('.csv', $output);
@@ -155,12 +169,12 @@ class TransformCommandTest extends TestCase
 
     public function test_command_with_format_parameter_shows_specified_format()
     {
-        $this->commandTester->execute([
+        $exitCode = $this->commandTester->execute([
             'input' => __DIR__ . '/../../Fixtures/movimenti-fineco.xlsx',
             '--format' => 'fineco'
         ]);
 
-        $this->commandTester->assertCommandIsSuccessful();
+        $this->assertEquals(0, $exitCode);
         $output = $this->commandTester->getDisplay();
         // Should not contain auto-detection message when format is specified
         $this->assertStringNotContainsString("Format 'fineco' detected", $output);
