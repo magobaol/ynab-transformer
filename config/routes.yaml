@@ -1,3 +1,9 @@
-#index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+app_transform_index:
+    path: /
+    controller: App\Controller\TransformController::index
+    methods: [GET]
+
+app_health_check:
+    path: /health/
+    controller: App\Controller\TransformController::health
+    methods: [GET]
