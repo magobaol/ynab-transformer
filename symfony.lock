@@ -334,6 +334,19 @@
     "symfony/translation-contracts": {
         "version": "v2.4.0"
     },
+    "symfony/twig-bundle": {
+        "version": "7.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.4",
+            "ref": "cab5fd2a13a45c266d45a7d9337e28dee6272877"
+        },
+        "files": [
+            "config/packages/twig.yaml",
+            "templates/base.html.twig"
+        ]
+    },
     "symfony/var-dumper": {
         "version": "v5.3.6"
     },
