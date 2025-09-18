@@ -26,7 +26,9 @@ class TransformController extends AbstractController
      */
     public function index(): Response
     {
-        return new Response('<h1>YNAB Transformer</h1><p>Web interface coming soon!</p>');
+        return $this->render('transform/index.html.twig', [
+            'supportedFormats' => $this->fileProcessingService->getSupportedFormats()
+        ]);
     }
 
     /**

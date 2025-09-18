@@ -1,263 +1,343 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YNAB Transformer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        .drop-zone {
-            border: 3px dashed #dee2e6;
-            border-radius: 10px;
-            padding: 3rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background-color: #f8f9fa;
-        }
-        .drop-zone:hover {
-            border-color: #0d6efd;
-            background-color: #e7f1ff;
-        }
-        .drop-zone.dragover {
-            border-color: #0d6efd;
-            background-color: #e7f1ff;
-            transform: scale(1.02);
-        }
-        .drop-zone.processing {
-            border-color: #ffc107;
-            background-color: #fff3cd;
-            cursor: not-allowed;
-        }
-        .banner {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            display: none;
-        }
-        .banner.show {
-            display: block;
-        }
-        .banner.success {
-            background-color: #d1e7dd;
-            border: 1px solid #badbcc;
-            color: #0f5132;
-        }
-        .banner.error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c2c7;
-            color: #842029;
-        }
-        .loading-spinner {
-            display: none;
-        }
-        .loading-spinner.show {
-            display: inline-block;
-        }
-    </style>
-</head>
-<body>
-    <div class="container mt-5" x-data="transformApp()">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <h1 class="text-center mb-4">YNAB Transformer</h1>
-                <p class="text-center text-muted mb-4">
-                    Upload your bank statement file and get a YNAB-compatible CSV in seconds
-                </p>
+{% extends 'base.html.twig' %}
 
-                <!-- Drop Zone -->
-                <div 
-                    class="drop-zone"
-                    :class="{ 'dragover': isDragOver, 'processing': isProcessing }"
-                    @dragover.prevent="isDragOver = true"
-                    @dragleave.prevent="isDragOver = false"
-                    @drop.prevent="handleFileDrop($event)"
-                    @click="!isProcessing && $refs.fileInput.click()"
-                >
-                    <div x-show="!isProcessing">
-                        <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #6c757d;"></i>
-                        <h4 class="mt-3">Drop your file here</h4>
-                        <p class="text-muted">or click to browse</p>
-                        <p class="small text-muted">Supports Excel (.xlsx, .xls) and CSV files up to 1MB</p>
+{% block title %}YNAB Transformer - Convert Bank Statements{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8 fade-in">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            <i class="fas fa-exchange-alt text-blue-600 mr-3"></i>
+            YNAB Transformer
+        </h1>
+        <p class="text-xl text-gray-600 mb-2">Convert your bank statements to YNAB format</p>
+        <p class="text-sm text-gray-500">Supported formats: {{ supportedFormats|join(', ') }}</p>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 fade-in">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <span id="error-text"></span>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 fade-in">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span>Thank you for using this service! Your file has been processed successfully.</span>
+    </div>
+
+    <!-- Upload Form -->
+    <div id="upload-form" class="bg-white rounded-lg shadow-lg p-8 mb-8 fade-in">
+        <form id="file-upload-form" action="/transform" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <!-- Drag and Drop Area -->
+            <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50">
+                <div class="space-y-4">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400"></i>
+                    <div>
+                        <p class="text-xl font-semibold text-gray-700 mb-2">Drop your file here</p>
+                        <p class="text-gray-500 mb-4">or click to browse</p>
+                        <button type="button" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-folder-open mr-2"></i>
+                            Choose File
+                        </button>
                     </div>
-                    
-                    <div x-show="isProcessing" class="text-center">
-                        <div class="loading-spinner show">
-                            <div class="spinner-border text-warning" role="status">
-                                <span class="visually-hidden">Processing...</span>
-                            </div>
-                        </div>
-                        <h4 class="mt-3">Processing your file...</h4>
-                        <p class="text-muted">Please wait while we convert your bank statement</p>
-                    </div>
+                    <p class="text-sm text-gray-400">Supports Excel (.xlsx, .xls) and CSV files up to 1MB</p>
                 </div>
+                <input type="file" id="file-input" name="file" accept=".xlsx,.xls,.csv" class="hidden" required>
+            </div>
 
-                <!-- Hidden File Input -->
-                <input 
-                    type="file" 
-                    x-ref="fileInput" 
-                    @change="handleFileSelect($event)"
-                    accept=".xlsx,.xls,.csv"
-                    style="display: none;"
-                >
-
-                <!-- Browse Button for Mobile -->
-                <div class="text-center mt-3">
-                    <button 
-                        type="button" 
-                        class="btn btn-outline-primary"
-                        @click="!isProcessing && $refs.fileInput.click()"
-                        :disabled="isProcessing"
-                    >
-                        Browse Files
+            <!-- File Info -->
+            <div id="file-info" class="hidden bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-file text-blue-600 mr-3"></i>
+                        <div>
+                            <p class="font-semibold text-gray-900" id="file-name"></p>
+                            <p class="text-sm text-gray-500" id="file-size"></p>
+                        </div>
+                    </div>
+                    <button type="button" id="remove-file" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
+            </div>
 
-                <!-- Success Banner -->
-                <div 
-                    class="banner success"
-                    :class="{ 'show': showSuccessBanner }"
-                    x-show="showSuccessBanner"
-                >
-                    <strong>Success!</strong> Thank you for using this service. Your file has been processed and downloaded.
-                </div>
+            <!-- Hidden file input for fallback -->
+            <input type="file" id="hidden-file-input" accept=".xlsx,.xls,.csv" style="display: none;">
 
-                <!-- Error Banner -->
-                <div 
-                    class="banner error"
-                    :class="{ 'show': showErrorBanner }"
-                    x-show="showErrorBanner"
-                >
-                    <strong>Error:</strong> <span x-text="errorMessage"></span>
-                </div>
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" id="submit-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fas fa-magic mr-2"></i>
+                    Transform to YNAB
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Upload will start automatically when file is selected</p>
+            </div>
+        </form>
+    </div>
 
-                <!-- Privacy Policy Link -->
-                <div class="text-center mt-5">
-                    <small class="text-muted">
-                        <a href="./privacy.html" target="_blank">Privacy Policy</a> - 
-                        Your data is processed temporarily and never stored permanently
-                    </small>
-                </div>
+    <!-- Progress Indicator -->
+    <div id="progress-container" class="hidden bg-white rounded-lg shadow-lg p-8 text-center fade-in">
+        <div class="space-y-4">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
+            <h3 class="text-xl font-semibold text-gray-900">Processing your file...</h3>
+            <p class="text-gray-600">Please wait while we transform your bank statement</p>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
             </div>
         </div>
     </div>
 
-    <script>
-        function transformApp() {
-            return {
-                isDragOver: false,
-                isProcessing: false,
-                showSuccessBanner: false,
-                showErrorBanner: false,
-                errorMessage: '',
+    <!-- Features -->
+    <div class="grid md:grid-cols-3 gap-6 mt-12">
+        <div class="bg-white rounded-lg shadow p-6 text-center fade-in">
+            <i class="fas fa-bolt text-3xl text-yellow-500 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2">Fast Processing</h3>
+            <p class="text-gray-600">Convert your files in seconds with automatic format detection</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6 text-center fade-in">
+            <i class="fas fa-shield-alt text-3xl text-green-500 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2">Secure & Private</h3>
+            <p class="text-gray-600">Your files are uploaded securely and immediately deleted from our servers after processing</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6 text-center fade-in">
+            <i class="fas fa-check-circle text-3xl text-blue-500 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2">YNAB Ready</h3>
+            <p class="text-gray-600">Output files are perfectly formatted for YNAB import</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-                handleFileDrop(event) {
-                    this.isDragOver = false;
-                    const files = event.dataTransfer.files;
-                    if (files.length > 0) {
-                        this.processFile(files[0]);
-                    }
-                },
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const hiddenFileInput = document.getElementById('hidden-file-input');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFileBtn = document.getElementById('remove-file');
+    const submitBtn = document.getElementById('submit-btn');
+    const form = document.getElementById('file-upload-form');
+    const progressBar = document.querySelector('.progress-bar');
+    
+    // Store the current file for form submission
+    let currentFile = null;
 
-                handleFileSelect(event) {
-                    const files = event.target.files;
-                    if (files.length > 0) {
-                        this.processFile(files[0]);
-                    }
-                },
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.add('dragover');
+    });
 
-                async processFile(file) {
-                    // Validate file
-                    if (!this.validateFile(file)) {
-                        return;
-                    }
+    uploadArea.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.add('dragover');
+    });
 
-                    this.isProcessing = true;
-                    this.hideBanners();
-
-                    try {
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        formData.append('auto_detect', 'true');
-
-                        const response = await fetch('/transform', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (response.ok) {
-                            // File download response
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = this.generateDownloadFilename(file.name);
-                            document.body.appendChild(a);
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                            document.body.removeChild(a);
-
-                            // Show success banner
-                            this.showSuccessBanner = true;
-                            setTimeout(() => {
-                                this.showSuccessBanner = false;
-                            }, 4000);
-                        } else {
-                            // Error response
-                            const errorData = await response.json();
-                            this.showError(errorData.error || 'An error occurred');
-                        }
-                    } catch (error) {
-                        this.showError('Network error. Please check your connection and try again.');
-                    } finally {
-                        this.isProcessing = false;
-                    }
-                },
-
-                validateFile(file) {
-                    // Check file size (1MB limit)
-                    if (file.size > 1048576) {
-                        this.showError('File size must be under 1MB');
-                        return false;
-                    }
-
-                    // Check file type
-                    const allowedTypes = [
-                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-                        'application/vnd.ms-excel', // .xls
-                        'text/csv', // .csv
-                        'application/csv' // .csv
-                    ];
-
-                    if (!allowedTypes.includes(file.type)) {
-                        this.showError('Please upload an Excel (.xlsx, .xls) or CSV file');
-                        return false;
-                    }
-
-                    return true;
-                },
-
-                showError(message) {
-                    this.errorMessage = message;
-                    this.showErrorBanner = true;
-                    setTimeout(() => {
-                        this.showErrorBanner = false;
-                    }, 5000);
-                },
-
-                hideBanners() {
-                    this.showSuccessBanner = false;
-                    this.showErrorBanner = false;
-                },
-
-                generateDownloadFilename(originalName) {
-                    const baseName = originalName.replace(/\.[^/.]+$/, '');
-                    return `${baseName}-to-ynab.csv`;
-                }
-            }
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Only remove dragover if we're actually leaving the upload area
+        if (!uploadArea.contains(e.relatedTarget)) {
+            uploadArea.classList.remove('dragover');
         }
-    </script>
-</body>
-</html>
+    });
 
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.remove('dragover');
+        
+        try {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                
+                // Try to set the file input (modern browsers)
+                if (typeof DataTransfer !== 'undefined') {
+                    try {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        fileInput.files = dataTransfer.files;
+                    } catch (error) {
+                        console.warn('DataTransfer not supported, using fallback');
+                    }
+                }
+                
+                currentFile = file;
+                handleFileSelect(file);
+            }
+        } catch (error) {
+            console.error('Error handling file drop:', error);
+            showError('Error processing dropped file: ' + error.message);
+        }
+    });
+
+    // Click to upload
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            currentFile = e.target.files[0];
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    // Remove file
+    removeFileBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        currentFile = null;
+        fileInfo.classList.add('hidden');
+        submitBtn.disabled = true;
+        
+        // Reset button text to original
+        submitBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Transform to YNAB';
+        
+        hideError();
+        hideSuccess();
+    });
+
+    // Handle file selection
+    function handleFileSelect(file) {
+        try {
+            console.log('File selected:', file.name, file.type, file.size);
+            
+            // Validate file type
+            const allowedTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel', // .xls
+                'text/csv' // .csv
+            ];
+            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
+                showError('Please select a valid Excel (.xlsx, .xls) or CSV file');
+                return;
+            }
+
+            // Validate file size (1MB limit)
+            if (file.size > 1024 * 1024) {
+                showError('File size must be less than 1MB');
+                return;
+            }
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('hidden');
+            hideError();
+            
+            console.log('File validation passed, starting automatic upload...');
+            
+            // Show a brief message that upload will start
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Starting upload...';
+            submitBtn.disabled = true;
+            
+            // Automatically start the upload
+            setTimeout(() => {
+                form.dispatchEvent(new Event('submit'));
+            }, 1000); // Give user time to see the file info
+        } catch (error) {
+            console.error('Error in handleFileSelect:', error);
+            showError('Error processing file: ' + error.message);
+        }
+    }
+
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        console.log('Form submitted, currentFile:', currentFile ? currentFile.name : 'none');
+        
+        if (!currentFile) {
+            showError('Please select a file to upload');
+            return;
+        }
+
+        console.log('Starting file upload...');
+        disableInterface();
+        showProgress();
+        
+        // Simulate progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressBar.style.width = progress + '%';
+        }, 200);
+
+        // Submit the form
+        const formData = new FormData();
+        formData.append('file', currentFile);
+        
+        fetch('/transform', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return response.blob();
+        })
+        .then(blob => {
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileInput.files[0].name.replace(/\.[^/.]+$/, '') + '-to-ynab.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Show success message and reset form
+            setTimeout(() => {
+                hideProgress();
+                showSuccess();
+                fileInput.value = '';
+                currentFile = null;
+                fileInfo.classList.add('hidden');
+                progressBar.style.width = '0%';
+                
+                // Reset button text to original
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Transform to YNAB';
+                
+                enableInterface();
+            }, 1000);
+        })
+        .catch(error => {
+            clearInterval(interval);
+            showError('Error processing file: ' + error.message);
+            
+            // Reset button text to original
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Transform to YNAB';
+            
+            enableInterface();
+        });
+    });
+});
+</script>
+{% endblock %}
