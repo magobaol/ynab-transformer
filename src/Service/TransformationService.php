@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Model\Transaction\YNABTransactions;
 use Transformer\Transformer;
+use Transformer\TransformerFactory;
 
 class TransformationService
 {
