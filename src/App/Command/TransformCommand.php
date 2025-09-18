@@ -54,7 +54,7 @@ class TransformCommand extends Command
             try {
                 $detectedFormat = TransformerFactory::detectFormat($sourceFileName);
                 $output->writeln("Format '{$detectedFormat}' detected, processing...");
-                $transformer = TransformerFactory::create($sourceFileName);
+                $transformer = TransformerFactory::create($detectedFormat, $sourceFileName);
             } catch (\Exception $e) {
                 $supportedFormats = implode(', ', TransformerFactory::getSupportedFormats());
                 $output->writeln("No supported format detected. Supported formats: {$supportedFormats}");
