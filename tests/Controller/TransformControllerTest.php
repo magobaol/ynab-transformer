@@ -7,16 +7,26 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Controller\TransformController;
 use App\Service\FileProcessingService;
+use App\Service\RateLimitingService;
+use App\Service\CsrfTokenService;
 
 class TransformControllerTest extends TestCase
 {
     private TransformController $controller;
     private FileProcessingService $fileProcessingService;
+    private RateLimitingService $rateLimitingService;
+    private CsrfTokenService $csrfTokenService;
 
     protected function setUp(): void
     {
         $this->fileProcessingService = $this->createMock(FileProcessingService::class);
-        $this->controller = new TransformController($this->fileProcessingService);
+        $this->rateLimitingService = $this->createMock(RateLimitingService::class);
+        $this->csrfTokenService = $this->createMock(CsrfTokenService::class);
+        $this->controller = new TransformController(
+            $this->fileProcessingService,
+            $this->rateLimitingService,
+            $this->csrfTokenService
+        );
     }
 
     public function test_index_calls_getSupportedFormats()
