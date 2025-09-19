@@ -29,6 +29,7 @@
     <!-- Upload Form -->
     <div id="upload-form" class="bg-white rounded-lg shadow-lg p-8 mb-8 fade-in">
         <form id="file-upload-form" action="/transform" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <input type="hidden" name="_token" value="{{ csrf_token }}">
             <!-- Drag and Drop Area -->
             <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50">
                 <div class="space-y-4">
@@ -285,6 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Submit the form
         const formData = new FormData();
         formData.append('file', currentFile);
+        formData.append('_token', '{{ csrf_token }}');
         
         fetch('/transform', {
             method: 'POST',
