@@ -3,22 +3,28 @@
 namespace App\Controller;
 
 use App\Service\FileProcessingService;
+use App\Service\RateLimitingService;
+use App\Service\CsrfTokenService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
-use Symfony\Component\Routing\Annotation\Route;
 
 class TransformController extends AbstractController
 {
     private FileProcessingService $fileProcessingService;
+    private RateLimitingService $rateLimitingService;
+    private CsrfTokenService $csrfTokenService;
 
-    public function __construct(FileProcessingService $fileProcessingService)
+    public function __construct(FileProcessingService $fileProcessingService, RateLimitingService $rateLimitingService, CsrfTokenService $csrfTokenService)
     {
         $this->fileProcessingService = $fileProcessingService;
+        $this->rateLimitingService = $rateLimitingService;
+        $this->csrfTokenService = $csrfTokenService;
     }
 
     /**
@@ -27,7 +33,8 @@ class TransformController extends AbstractController
     public function index(): Response
     {
         return $this->render('transform/index.html.twig', [
-            'supportedFormats' => $this->fileProcessingService->getSupportedFormats()
+            'supportedFormats' => $this->fileProcessingService->getSupportedFormats(),
+            'csrf_token' => $this->csrfTokenService->getToken()
         ]);
     }
 
@@ -54,11 +61,30 @@ class TransformController extends AbstractController
             throw new BadRequestHttpException('No file uploaded');
         }
 
+        // Validate CSRF token
+        if (!$this->csrfTokenService->validateTokenFromRequest($request)) {
+            throw new BadRequestHttpException('Invalid CSRF token');
+        }
+
+        // Get client IP and check rate limiting
+        $clientIp = $this->rateLimitingService->getClientIp($request);
+        
+        // Skip rate limiting for whitelisted IPs (for testing)
+        if (!$this->rateLimitingService->isWhitelisted($clientIp)) {
+            if (!$this->rateLimitingService->isAllowed($clientIp)) {
+                $timeUntilReset = $this->rateLimitingService->getTimeUntilReset($clientIp);
+                throw new TooManyRequestsHttpException($timeUntilReset, 'Rate limit exceeded. Please try again later.');
+            }
+        }
+
         try {
             // Validate the uploaded file
             if (!$this->fileProcessingService->validateUploadedFile($uploadedFile)) {
                 throw new UnprocessableEntityHttpException('Invalid file type or size');
             }
+
+            // Record the request for rate limiting
+            $this->rateLimitingService->recordRequest($clientIp);
 
             // Process the file and return CSV download
             return $this->fileProcessingService->processUploadedFile($uploadedFile);

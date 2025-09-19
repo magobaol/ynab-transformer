@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Rate limiting configuration
+    app.rate_limit.whitelist: '%env(RATE_LIMIT_WHITELIST)%'
 
 services:
     # default configuration for services in *this* file
@@ -38,6 +40,21 @@ services:
         arguments:
             $transformationService: '@App\Service\TransformationService'
             $tempDir: '%kernel.project_dir%/var/tmp'
+
+    App\Service\RateLimitingService:
+        arguments:
+            $cacheDir: '%kernel.project_dir%/var/cache/rate_limits'
+            $maxRequests: 5
+            $timeWindow: 600
+            $whitelist: '%app.rate_limit.whitelist%'
+
+    App\EventListener\SecurityHeadersListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.response }
+
+    App\Service\CsrfTokenService:
+        arguments:
+            $cacheDir: '%kernel.project_dir%/var/cache/csrf'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
