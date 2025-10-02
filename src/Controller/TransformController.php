@@ -53,17 +53,17 @@ class TransformController extends AbstractController
     /**
      * Process uploaded file and return CSV download
      */
-    public function transform(Request $request): BinaryFileResponse
+    public function transform(Request $request): Response
     {
         $uploadedFile = $request->files->get('file');
         
         if (!$uploadedFile) {
-            throw new BadRequestHttpException('No file uploaded');
+            return new JsonResponse(['error' => 'No file uploaded'], 400);
         }
 
         // Validate CSRF token
         if (!$this->csrfTokenService->validateTokenFromRequest($request)) {
-            throw new BadRequestHttpException('Invalid CSRF token');
+            return new JsonResponse(['error' => 'Invalid CSRF token'], 400);
         }
 
         // Get client IP and check rate limiting
@@ -73,24 +73,25 @@ class TransformController extends AbstractController
         if (!$this->rateLimitingService->isWhitelisted($clientIp)) {
             if (!$this->rateLimitingService->isAllowed($clientIp)) {
                 $timeUntilReset = $this->rateLimitingService->getTimeUntilReset($clientIp);
-                throw new TooManyRequestsHttpException($timeUntilReset, 'Rate limit exceeded. Please try again later.');
+                return new JsonResponse(['error' => 'Rate limit exceeded. Please try again later.'], 429);
             }
         }
 
         try {
             // Validate the uploaded file
             if (!$this->fileProcessingService->validateUploadedFile($uploadedFile)) {
-                throw new UnprocessableEntityHttpException('Invalid file type or size');
+                return new JsonResponse(['error' => 'Invalid file type or size'], 422);
             }
 
             // Record the request for rate limiting
             $this->rateLimitingService->recordRequest($clientIp);
 
+
             // Process the file and return CSV download
             return $this->fileProcessingService->processUploadedFile($uploadedFile);
             
         } catch (\Exception $e) {
-            throw new UnprocessableEntityHttpException($e->getMessage());
+            return new JsonResponse(['error' => $e->getMessage()], 422);
         }
     }
 }
