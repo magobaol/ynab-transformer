@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000); // Give user time to see the file info
         } catch (error) {
             console.error('Error in handleFileSelect:', error);
-            showError('Error processing file: ' + error.message);
+            showError(error.message);
         }
     }
 
@@ -417,12 +417,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!response.ok) {
                 // Try to parse JSON error response
-                return response.json().then(data => {
-                    throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
-                }).catch(() => {
-                    // Fallback if JSON parsing fails
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                });
+                return response.json()
+                    .then(data => {
+                        throw new Error(data.error || 'Server error occurred');
+                    })
+                    .catch(jsonError => {
+                        // If JSON parsing fails, throw a generic error
+                        // Otherwise, re-throw the original error
+                        if (jsonError instanceof Error && jsonError.message) {
+                            throw jsonError;
+                        }
+                        throw new Error('Server error occurred');
+                    });
             }
             
             return response.blob();
@@ -459,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             clearInterval(interval);
             hideProgress();
-            showError('Error processing file: ' + error.message);
+            showError(error.message);
             
             // Reset button text to original
             const submitBtn = document.getElementById('submit-btn');
