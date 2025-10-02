@@ -43,8 +43,8 @@ class FinecoTest extends TestCase
 
         $transaction4 = [
             'date' => '2021-08-11',
-            'payee' => 'Ord: Company name Dt-ord: 11/08/2021',
-            'memo' => 'Ord: Company name Dt-ord: 11/08/2021',
+            'payee' => 'Ord: Company name Ben: SIMPSON HOMER Dt-o rd: 11/08/2021 Banca Ord: BANCA FINTA SPA Info-Cli: SALDO',
+            'memo' => 'Ord: Company name Ben: SIMPSON HOMER Dt-o rd: 11/08/2021 Banca Ord: BANCA FINTA SPA Info-Cli: SALDO',
             'outflow' => '0.00',
             'inflow' => '1000.00'
         ];
@@ -52,8 +52,8 @@ class FinecoTest extends TestCase
 
         $transaction5 = [
             'date' => '2021-08-11',
-            'payee' => 'Ord: Company name Dt-ord: 10/08/2021',
-            'memo' => '(10/08/2021) Ord: Company name Dt-ord: 10/08/2021',
+            'payee' => 'Ord: Company name Ben: SIMPSON HOMER Dt-o rd: 10/08/2021 Banca Ord: BANCA FINTA SPA Info-Cli: SALDO',
+            'memo' => '(10/08/2021) Ord: Company name Ben: SIMPSON HOMER Dt-o rd: 10/08/2021 Banca Ord: BANCA FINTA SPA Info-Cli: SALDO',
             'outflow' => '0.00',
             'inflow' => '500.00'
         ];
@@ -61,7 +61,7 @@ class FinecoTest extends TestCase
 
         $transaction6 = [
             'date' => '2021-08-17',
-            'payee' => 'Prelevamento carta N° *****        651  Data operazione 16/8/2021',
+            'payee' => 'Prelevamento Carta N ***** 123 Data operazione: 16/8/2021 Ora: 14:06 ABI: 9999 Cod. ATM: 888',
             'memo' => '(16/08/2021) Prelievo',
             'outflow' => '200.00',
             'inflow' => '0.00'

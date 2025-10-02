@@ -22,7 +22,7 @@ class TransformControllerErrorHandlingTest extends WebTestCase
         
         $data = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('error', $data);
-        $this->assertEquals('No file uploaded', $data['error']);
+        $this->assertEquals('Please select a file to upload.', $data['error']);
     }
 
     public function testInvalidFileTypeReturnsJsonError(): void
