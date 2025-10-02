@@ -28,7 +28,7 @@
 
     <!-- Upload Form -->
     <div id="upload-form" class="bg-white rounded-lg shadow-lg p-8 mb-8 fade-in">
-        <form id="file-upload-form" action="{{ path('app_transform_upload') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <div id="file-upload-form" class="space-y-6">
             <input type="hidden" name="_token" value="{{ csrf_token }}">
             <!-- Drag and Drop Area -->
             <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50">
@@ -37,14 +37,14 @@
                     <div>
                         <p class="text-xl font-semibold text-gray-700 mb-2">Drop your file here</p>
                         <p class="text-gray-500 mb-4">or click to browse</p>
-                        <button type="button" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <button type="button" id="choose-file-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                             <i class="fas fa-folder-open mr-2"></i>
                             Choose File
                         </button>
                     </div>
                     <p class="text-sm text-gray-400">Supports Excel (.xlsx, .xls) and CSV files up to 1MB</p>
                 </div>
-                <input type="file" id="file-input" name="file" accept=".xlsx,.xls,.csv" class="hidden" required>
+                <input type="file" id="file-input" name="file" accept=".xlsx,.xls,.csv" class="hidden">
             </div>
 
             <!-- File Info -->
@@ -68,24 +68,20 @@
 
             <!-- Submit Button -->
             <div class="text-center">
-                <button type="submit" id="submit-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <button type="button" id="submit-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     <i class="fas fa-magic mr-2"></i>
                     Transform to YNAB
                 </button>
-                <p class="text-sm text-gray-500 mt-2">Upload will start automatically when file is selected</p>
+                <p id="upload-hint" class="text-sm text-gray-500 mt-2">Upload will start automatically when file is selected</p>
             </div>
         </form>
     </div>
 
     <!-- Progress Indicator -->
-    <div id="progress-container" class="hidden bg-white rounded-lg shadow-lg p-8 text-center fade-in">
-        <div class="space-y-4">
-            <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-            <h3 class="text-xl font-semibold text-gray-900">Processing your file...</h3>
-            <p class="text-gray-600">Please wait while we transform your bank statement</p>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
-            </div>
+    <div id="progress-container" style="display: none;">
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: white; border: 5px solid red; padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); min-width: 300px; text-align: center;">
+            <div style="font-size: 24px; color: red; font-weight: bold;">PROCESSING YOUR FILE...</div>
+            <div style="font-size: 16px; color: #666; margin-top: 10px;">Please wait while we transform your bank statement</div>
         </div>
     </div>
 
@@ -112,6 +108,12 @@
 
 {% block scripts %}
 <script>
+// Global error handler
+window.addEventListener('error', function(e) {
+    console.error('JavaScript error:', e.error);
+    showError('JavaScript error: ' + e.error.message);
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const uploadArea = document.getElementById('upload-area');
     const fileInput = document.getElementById('file-input');
@@ -121,8 +123,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileSize = document.getElementById('file-size');
     const removeFileBtn = document.getElementById('remove-file');
     const submitBtn = document.getElementById('submit-btn');
+    const chooseFileBtn = document.getElementById('choose-file-btn');
     const form = document.getElementById('file-upload-form');
     const progressBar = document.querySelector('.progress-bar');
+    
+    // Check if progress bar exists
+    if (!progressBar) {
+        console.warn('Progress bar not found, progress animation will be skipped');
+    }
+    
+    // Debug: Check if elements are found
     
     // Store the current file for form submission
     let currentFile = null;
@@ -180,9 +190,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Click to upload
-    uploadArea.addEventListener('click', function() {
-        fileInput.click();
-    });
+    if (uploadArea) {
+        uploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+    } else {
+        console.error('uploadArea not found');
+    }
+
+    // Choose File button
+    if (chooseFileBtn) {
+        chooseFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            fileInput.click();
+        });
+    } else {
+        console.error('chooseFileBtn not found');
+    }
 
     // File input change
     fileInput.addEventListener('change', function(e) {
@@ -190,6 +214,11 @@ document.addEventListener('DOMContentLoaded', function() {
             currentFile = e.target.files[0];
             handleFileSelect(e.target.files[0]);
         }
+    });
+
+    // Submit button click
+    submitBtn.addEventListener('click', function() {
+        handleFileUpload();
     });
 
     // Remove file
@@ -209,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle file selection
     function handleFileSelect(file) {
         try {
-            console.log('File selected:', file.name, file.type, file.size);
             
             // Validate file type
             const allowedTypes = [
@@ -233,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function() {
             fileInfo.classList.remove('hidden');
             hideError();
             
-            console.log('File validation passed, starting automatic upload...');
             
             // Show a brief message that upload will start
             const submitBtn = document.getElementById('submit-btn');
@@ -243,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Automatically start the upload
             setTimeout(() => {
-                form.dispatchEvent(new Event('submit'));
+                handleFileUpload();
             }, 1000); // Give user time to see the file info
         } catch (error) {
             console.error('Error in handleFileSelect:', error);
@@ -260,18 +287,106 @@ document.addEventListener('DOMContentLoaded', function() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Form submission
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Show progress container (overlay on top)
+    function showProgress() {
         
-        console.log('Form submitted, currentFile:', currentFile ? currentFile.name : 'none');
+        // Remove existing progress container if it exists
+        const existingProgress = document.getElementById('progress-container');
+        if (existingProgress) {
+            existingProgress.remove();
+        }
+        
+        // Create new progress container dynamically
+        const progressContainer = document.createElement('div');
+        progressContainer.id = 'progress-container';
+        progressContainer.innerHTML = `
+            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: white; border: 2px solid #3b82f6; padding: 32px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); min-width: 300px; text-align: center;">
+                <div style="font-size: 20px; color: #3b82f6; font-weight: 600; margin-bottom: 8px;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>
+                    Processing your file...
+                </div>
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 16px;">Please wait while we transform your bank statement</div>
+                <div style="width: 100%; background: #e5e7eb; border-radius: 8px; height: 4px; overflow: hidden;">
+                    <div class="progress-bar" style="background: #3b82f6; height: 100%; width: 0%; border-radius: 8px; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(progressContainer);
+        
+    }
+
+    // Hide progress container
+    function hideProgress() {
+        const progressContainer = document.getElementById('progress-container');
+        
+        if (progressContainer) {
+            // Remove progress container
+            progressContainer.remove();
+        }
+    }
+
+    // Show error message
+    function showError(message) {
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        if (errorMessage && errorText) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+    }
+
+    // Hide error message
+    function hideError() {
+        const errorMessage = document.getElementById('error-message');
+        if (errorMessage) {
+            errorMessage.classList.add('hidden');
+        }
+    }
+
+    // Show success message
+    function showSuccess() {
+        const successMessage = document.getElementById('success-message');
+        if (successMessage) {
+            successMessage.classList.remove('hidden');
+        }
+    }
+
+    // Hide success message
+    function hideSuccess() {
+        const successMessage = document.getElementById('success-message');
+        if (successMessage) {
+            successMessage.classList.add('hidden');
+        }
+    }
+
+    // Disable interface
+    function disableInterface() {
+        const uploadForm = document.getElementById('upload-form');
+        if (uploadForm) {
+            uploadForm.style.pointerEvents = 'none';
+            uploadForm.style.opacity = '0.5';
+        }
+    }
+
+    // Enable interface
+    function enableInterface() {
+        const uploadForm = document.getElementById('upload-form');
+        if (uploadForm) {
+            uploadForm.style.pointerEvents = 'auto';
+            uploadForm.style.opacity = '1';
+        }
+    }
+
+    // Handle file upload (no form submission needed)
+    function handleFileUpload() {
         
         if (!currentFile) {
             showError('Please select a file to upload');
             return;
         }
 
-        console.log('Starting file upload...');
         disableInterface();
         showProgress();
         
@@ -280,7 +395,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const interval = setInterval(() => {
             progress += Math.random() * 15;
             if (progress > 90) progress = 90;
-            progressBar.style.width = progress + '%';
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
         }, 200);
 
         // Submit the form
@@ -294,10 +411,18 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             clearInterval(interval);
-            progressBar.style.width = '100%';
+            if (progressBar) {
+                progressBar.style.width = '100%';
+            }
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                // Try to parse JSON error response
+                return response.json().then(data => {
+                    throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
+                }).catch(() => {
+                    // Fallback if JSON parsing fails
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                });
             }
             
             return response.blob();
@@ -320,7 +445,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileInput.value = '';
                 currentFile = null;
                 fileInfo.classList.add('hidden');
-                progressBar.style.width = '0%';
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                }
                 
                 // Reset button text to original
                 const submitBtn = document.getElementById('submit-btn');
@@ -331,6 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             clearInterval(interval);
+            hideProgress();
             showError('Error processing file: ' + error.message);
             
             // Reset button text to original
@@ -339,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             enableInterface();
         });
-    });
+    }
 });
 </script>
 {% endblock %}
