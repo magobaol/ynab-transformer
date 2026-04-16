@@ -157,28 +157,10 @@ class FileProcessingService
             return false;
         }
 
-        // Check file type
         $allowedExtensions = ['xlsx', 'xls', 'csv'];
         $extension = strtolower($uploadedFile->getClientOriginalExtension());
-        
-        if (!in_array($extension, $allowedExtensions)) {
-            return false;
-        }
 
-        // Check MIME type
-        $allowedMimeTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-            'application/vnd.ms-excel', // .xls
-            'text/csv', // .csv
-            'application/csv', // .csv
-            'text/plain', // .csv (common MIME type for CSV files)
-        ];
-        
-        if (!in_array($uploadedFile->getMimeType(), $allowedMimeTypes)) {
-            return false;
-        }
-
-        return true;
+        return in_array($extension, $allowedExtensions);
     }
 
     /**

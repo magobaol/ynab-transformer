@@ -38,6 +38,15 @@ class FileProcessingServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_validateUploadedFile_with_xlsx_detected_as_octet_stream_returns_true()
+    {
+        $file = $this->createMockUploadedFile('20260409_ListaOperazioni.xlsx', 'application/octet-stream', 11919);
+
+        $result = $this->service->validateUploadedFile($file);
+
+        $this->assertTrue($result);
+    }
+
     public function test_validateUploadedFile_with_invalid_file_type_returns_false()
     {
         $file = $this->createMockUploadedFile('document.pdf', 'application/pdf', 1024);
