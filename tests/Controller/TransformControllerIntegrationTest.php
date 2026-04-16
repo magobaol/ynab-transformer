@@ -82,20 +82,25 @@ class TransformControllerIntegrationTest extends WebTestCase
         unlink($tempFile);
     }
 
-    public function testExceptionListenerHandlesApiRequests(): void
+    public function testExceptionListenerReturnsJsonForAjaxRequests(): void
     {
         $client = static::createClient();
 
-        $client->request('POST', '/transform', [], [], [
-            'HTTP_ACCEPT' => 'application/json',
-            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
+        // Hit a non-existent route as AJAX so the router's NotFoundHttpException
+        // propagates to the ExceptionListener instead of rendering Symfony's
+        // HTML error page.
+        $client->request('GET', '/nonexistent-route', [], [], [
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
         ]);
 
         $response = $client->getResponse();
-        $this->assertTrue($response->headers->contains('Content-Type', 'application/json'));
+        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertStringContainsString('application/json', $response->headers->get('Content-Type'));
 
         $data = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('status', $data);
+        $this->assertEquals(404, $data['status']);
     }
 
     public function testValidUploadReturnsCsvDownload(): void

@@ -1,0 +1,7 @@
+services:
+    # Silence logger output during tests so expected ExceptionListener
+    # logs don't pollute phpunit's output.
+    Psr\Log\NullLogger: ~
+    logger:
+        alias: Psr\Log\NullLogger
+        public: true
