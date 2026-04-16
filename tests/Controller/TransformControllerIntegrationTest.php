@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Controller;
+namespace Tests\Controller;
 
 use App\Service\CsrfTokenService;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -8,6 +8,21 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class TransformControllerIntegrationTest extends WebTestCase
 {
+    public function testIndexPageRendersSupportedFormatsAndCsrfToken(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/');
+
+        $response = $client->getResponse();
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertStringContainsString('text/html', $response->headers->get('Content-Type'));
+
+        $body = $response->getContent();
+        $this->assertStringContainsString('fineco', $body);
+        $this->assertMatchesRegularExpression('/name="_token"\s+value="[a-f0-9]{64}"/', $body);
+    }
+
     public function testNoFileUploadedReturnsJsonError(): void
     {
         $client = static::createClient();
