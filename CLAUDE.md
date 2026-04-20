@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Symfony 7.3 / PHP 8.4 application that converts Italian bank statements (Fineco, Revolut, Nexi, Popso, Poste, Telepass, Isybank) into YNAB-compatible CSV. Two entry points share the same transformation pipeline:
+Symfony 7.3 / PHP 8.4 application that converts Italian bank statements (Fineco, Revolut, Nexi, Popso, Poste, Telepass, Isybank, BPER) into YNAB-compatible CSV. Two entry points share the same transformation pipeline:
 
 - **CLI** — `bin/console app:transform <input-file> [--format=<name>]`
 - **Web** — Symfony controller serving a Twig UI at `/` with a POST `/transform` AJAX upload endpoint
@@ -44,7 +44,7 @@ The core abstraction is `Transformer\Transformer` ([src/Transformer/Transformer.
 - `canHandle(string $filename): bool` — static sniff used for format auto-detection (header row inspection, extension check, etc.)
 - `transformToYNAB(): YNABTransactions` — produces the normalized transaction collection
 
-Each bank has its own implementation in `src/Transformer/` (Fineco, Revolut, Nexi, Popso, Poste, Telepass, Isybank). Excel files are read via `phpoffice/phpspreadsheet`; CSVs are parsed directly.
+Each bank has its own implementation in `src/Transformer/` (Fineco, Revolut, Nexi, Popso, Poste, Telepass, Isybank, BPER). Excel files are read via `phpoffice/phpspreadsheet`; CSVs are parsed directly.
 
 `Transformer\TransformerFactory` ([src/Transformer/TransformerFactory.php](src/Transformer/TransformerFactory.php)) owns the `format => class` registry and exposes `detectFormat()` / `create()` / `getSupportedFormats()`. **When adding a new bank, register it here** — both the CLI command and the web service read the registry through this factory. Note: `TransformCommand` currently also maintains its own private map in `createTransformerByFormat()` that must be kept in sync.
 
