@@ -87,6 +87,7 @@ class TransformCommand extends Command
             'poste' => \Transformer\Poste::class,
             'telepass' => \Transformer\Telepass::class,
             'isybank' => \Transformer\Isybank::class,
+            'bper' => \Transformer\BPER::class,
         ];
 
         if (!isset($transformerClasses[$format])) {
