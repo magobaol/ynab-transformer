@@ -7,9 +7,9 @@ use Transformer\BPER;
 
 class BPERTest extends TestCase
 {
-    public function test_process(): void
+    public function test_process_with_date_filter_layout(): void
     {
-        $transformer = new BPER(__DIR__ . '/../Fixtures/movimenti-bper.xls');
+        $transformer = new BPER(__DIR__ . '/../Fixtures/movimenti-bper-with-date-filter.xls');
         $transactions = $transformer->transformToYNAB();
 
         $this->assertCount(19, $transactions->toArray());
@@ -52,9 +52,34 @@ class BPERTest extends TestCase
         }
     }
 
-    public function test_canHandle_returns_true_for_valid_bper_file(): void
+    public function test_process_without_date_filter_layout(): void
     {
-        $this->assertTrue(BPER::canHandle(__DIR__ . '/../Fixtures/movimenti-bper.xls'));
+        $transformer = new BPER(__DIR__ . '/../Fixtures/movimenti-bper-without-date-filter.xls');
+        $transactions = $transformer->transformToYNAB()->toArray();
+
+        // 45 rows in the export, one of which is "Da contabilizzare" and gets skipped.
+        $this->assertCount(44, $transactions);
+
+        // Row 18 in the file is "Da contabilizzare" (06 maggio 2026) -> must not appear.
+        foreach ($transactions as $tx) {
+            $this->assertNotSame('2026-05-06', $tx['date']);
+        }
+
+        $first = $transactions[0];
+        $this->assertSame('2026-05-05', $first['date']);
+        $this->assertStringStartsWith('COMM. BON. ISTANTANEO a favore di Lucia Bianchi', $first['payee']);
+        $this->assertSame('1.50', $first['outflow']);
+        $this->assertSame('0.00', $first['inflow']);
+    }
+
+    public function test_canHandle_returns_true_for_with_date_filter_layout(): void
+    {
+        $this->assertTrue(BPER::canHandle(__DIR__ . '/../Fixtures/movimenti-bper-with-date-filter.xls'));
+    }
+
+    public function test_canHandle_returns_true_for_without_date_filter_layout(): void
+    {
+        $this->assertTrue(BPER::canHandle(__DIR__ . '/../Fixtures/movimenti-bper-without-date-filter.xls'));
     }
 
     public function test_canHandle_returns_false_for_telepass_file(): void

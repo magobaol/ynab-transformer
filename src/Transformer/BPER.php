@@ -7,14 +7,14 @@ use Model\Transaction\YNABTransaction;
 use Model\Transaction\YNABTransactions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class BPER implements Transformer
 {
     private Spreadsheet $file;
+    private int $firstDataRow;
 
     private const SHEET_TITLE = 'Movimenti Conto';
-    private const HEADER_ROW = 18;
-    private const FIRST_DATA_ROW = 19;
 
     private const COL_DATA_OPERAZIONE = 'B';
     private const COL_DATA_VALUTA = 'C';
@@ -32,12 +32,27 @@ class BPER implements Transformer
         self::COL_STATO => 'Stato',
     ];
 
+    // BPER produces two layouts: with a date filter applied the export inserts an
+    // extra "Intervallo di tempo" row, pushing the header to row 18; without a
+    // filter the header sits on row 17.
+    private const HEADER_ROW_WITH_DATE_FILTER = 18;
+    private const HEADER_ROW_WITHOUT_DATE_FILTER = 17;
+    private const KNOWN_HEADER_ROWS = [
+        self::HEADER_ROW_WITH_DATE_FILTER,
+        self::HEADER_ROW_WITHOUT_DATE_FILTER,
+    ];
+
     private const DATE_FORMAT = '!d F Y';
     private const DATE_LOCALE = 'it';
 
     public function __construct(string $inputFilename)
     {
         $this->file = IOFactory::load($inputFilename);
+        $headerRow = self::detectHeaderRow($this->file->getActiveSheet());
+        if ($headerRow === null) {
+            throw new \RuntimeException('Unrecognized BPER layout: expected header row at 17 or 18.');
+        }
+        $this->firstDataRow = $headerRow + 1;
     }
 
     public static function canHandle(string $filename): bool
@@ -58,22 +73,36 @@ class BPER implements Transformer
                 return false;
             }
 
-            foreach (self::EXPECTED_HEADERS as $col => $expected) {
-                if ($sheet->getCell($col . self::HEADER_ROW)->getValue() !== $expected) {
-                    return false;
-                }
-            }
-
-            return true;
+            return self::detectHeaderRow($sheet) !== null;
         } catch (\Throwable $e) {
             return false;
         }
     }
 
+    private static function detectHeaderRow(Worksheet $sheet): ?int
+    {
+        foreach (self::KNOWN_HEADER_ROWS as $row) {
+            if (self::headersMatch($sheet, $row)) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    private static function headersMatch(Worksheet $sheet, int $row): bool
+    {
+        foreach (self::EXPECTED_HEADERS as $col => $expected) {
+            if ($sheet->getCell($col . $row)->getValue() !== $expected) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function transformToYNAB(): YNABTransactions
     {
         $transactions = new YNABTransactions();
-        $row = self::FIRST_DATA_ROW;
+        $row = $this->firstDataRow;
 
         while ($this->rowHasData($row)) {
             if (!$this->shouldSkipRow($row)) {
