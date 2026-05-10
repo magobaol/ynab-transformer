@@ -44,10 +44,10 @@ class TransformCommand extends Command
                 if ($detectedFormat !== $format) {
                     $output->writeln("Warning: File appears to be '{$detectedFormat}' format, but '{$format}' was specified. Using specified format.");
                 }
-                $transformer = $this->createTransformerByFormat($format, $sourceFileName);
+                $transformer = TransformerFactory::create($format, $sourceFileName);
             } catch (\Exception $e) {
                 // If auto-detection fails but format is specified, still try to use the specified format
-                $transformer = $this->createTransformerByFormat($format, $sourceFileName);
+                $transformer = TransformerFactory::create($format, $sourceFileName);
             }
         } else {
             // Auto-detect format
@@ -74,28 +74,5 @@ class TransformCommand extends Command
         $ynabTransactions->toCSVFile($targetFileName);
         $output->writeln($targetFileName);
         return Command::SUCCESS;
-    }
-
-    private function createTransformerByFormat(string $format, string $sourceFileName): object
-    {
-        // Import the transformer classes
-        $transformerClasses = [
-            'fineco' => \Transformer\Fineco::class,
-            'revolut' => \Transformer\Revolut::class,
-            'nexi' => \Transformer\Nexi::class,
-            'popso' => \Transformer\Popso::class,
-            'poste' => \Transformer\Poste::class,
-            'telepass' => \Transformer\Telepass::class,
-            'isybank' => \Transformer\Isybank::class,
-            'bper' => \Transformer\BPER::class,
-            'intesa' => \Transformer\Intesa::class,
-        ];
-
-        if (!isset($transformerClasses[$format])) {
-            throw new \InvalidArgumentException("Unknown format: {$format}");
-        }
-
-        $transformerClass = $transformerClasses[$format];
-        return new $transformerClass($sourceFileName);
     }
 }
