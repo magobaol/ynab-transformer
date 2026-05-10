@@ -129,7 +129,7 @@ class TransformerFactoryTest extends TestCase
     public function test_getSupportedFormats_returns_all_supported_formats()
     {
         $formats = TransformerFactory::getSupportedFormats();
-        $expected = ['fineco', 'revolut', 'nexi', 'popso', 'poste', 'telepass', 'isybank', 'bper'];
+        $expected = ['fineco', 'revolut', 'nexi', 'popso', 'poste', 'telepass', 'isybank', 'bper', 'intesa'];
         $this->assertEquals($expected, $formats);
     }
 }

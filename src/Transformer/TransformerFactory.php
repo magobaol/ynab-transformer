@@ -4,6 +4,7 @@ namespace Transformer;
 
 use Transformer\BPER;
 use Transformer\Fineco;
+use Transformer\Intesa;
 use Transformer\Isybank;
 use Transformer\Nexi;
 use Transformer\Popso;
@@ -26,6 +27,7 @@ class TransformerFactory
         'telepass' => Telepass::class,
         'isybank' => Isybank::class,
         'bper' => BPER::class,
+        'intesa' => Intesa::class,
     ];
 
     /**
