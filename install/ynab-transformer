@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Production wrapper for ynab-transformer (installed copy in ~/.local/opt/ynab-transformer).
+# Bridges the XDG config to the env vars the app expects and runs the Symfony console in prod.
+set -euo pipefail
+
+APP_DIR="$HOME/.local/opt/ynab-transformer"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/ynab-transformer/config.yaml"
+
+# Bridge the XDG config to the env var the web layer expects (rate-limit IP whitelist).
+if [[ -f "$CONFIG" ]]; then
+  whitelist="$(sed -n -E "s/^rate_limit_whitelist:[[:space:]]*['\"]?([^'\"]+)['\"]?[[:space:]]*\$/\1/p" "$CONFIG")"
+  [[ -n "${whitelist:-}" ]] && export RATE_LIMIT_WHITELIST="$whitelist"
+fi
+
+export APP_ENV=prod
+# Resolve php under a minimal PATH (e.g. a Keyboard Maestro headless shell): Homebrew's bin.
+export PATH="/opt/homebrew/bin:$PATH"
+exec php "$APP_DIR/bin/console" "$@"
