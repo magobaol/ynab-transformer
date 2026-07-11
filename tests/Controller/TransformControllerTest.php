@@ -2,6 +2,7 @@
 
 namespace Tests\Controller;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Controller\TransformController;
@@ -9,6 +10,7 @@ use App\Service\FileProcessingService;
 use App\Service\RateLimitingService;
 use App\Service\CsrfTokenService;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransformControllerTest extends TestCase
 {
     private TransformController $controller;

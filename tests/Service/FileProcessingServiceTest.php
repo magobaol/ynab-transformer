@@ -2,6 +2,7 @@
 
 namespace Tests\Service;
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -9,6 +10,7 @@ use App\Service\FileProcessingService;
 use App\Service\TransformationService;
 use Model\Transaction\YNABTransactions;
 
+#[AllowMockObjectsWithoutExpectations]
 class FileProcessingServiceTest extends TestCase
 {
     private FileProcessingService $service;
