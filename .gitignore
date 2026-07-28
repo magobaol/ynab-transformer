@@ -21,3 +21,6 @@
 
 # Per-user Claude Code permission overrides (keep local, don't share)
 /.claude/settings.local.json
+
+# Auto-generated IDE config hints (regenerated on cache warmup)
+/config/reference.php
