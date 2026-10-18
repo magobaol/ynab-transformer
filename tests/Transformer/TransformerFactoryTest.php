@@ -11,6 +11,7 @@ use Transformer\Popso;
 use Transformer\Poste;
 use Transformer\Telepass;
 use Transformer\Isybank;
+use Transformer\Satispay;
 
 class TransformerFactoryTest extends TestCase
 {
@@ -54,6 +55,12 @@ class TransformerFactoryTest extends TestCase
     {
         $format = TransformerFactory::detectFormat(__DIR__ . '/../Fixtures/movimenti-isybank.xlsx');
         $this->assertEquals('isybank', $format);
+    }
+
+    public function test_detectFormat_returns_satispay_for_satispay_file()
+    {
+        $format = TransformerFactory::detectFormat(__DIR__ . '/../Fixtures/movimenti-satispay.xlsx');
+        $this->assertEquals('satispay', $format);
     }
 
     public function test_detectFormat_throws_exception_for_unknown_format()
@@ -112,6 +119,12 @@ class TransformerFactoryTest extends TestCase
         $this->assertInstanceOf(Isybank::class, $transformer);
     }
 
+    public function test_create_returns_satispay_transformer_for_satispay_file()
+    {
+        $transformer = TransformerFactory::create('satispay', __DIR__ . '/../Fixtures/movimenti-satispay.xlsx');
+        $this->assertInstanceOf(Satispay::class, $transformer);
+    }
+
     public function test_create_throws_exception_for_unknown_format()
     {
         $this->expectException(\Exception::class);
@@ -129,7 +142,7 @@ class TransformerFactoryTest extends TestCase
     public function test_getSupportedFormats_returns_all_supported_formats()
     {
         $formats = TransformerFactory::getSupportedFormats();
-        $expected = ['fineco', 'revolut', 'nexi', 'popso', 'poste', 'telepass', 'isybank', 'bper', 'intesa'];
+        $expected = ['fineco', 'revolut', 'nexi', 'popso', 'poste', 'telepass', 'isybank', 'bper', 'intesa', 'satispay'];
         $this->assertEquals($expected, $formats);
     }
 }

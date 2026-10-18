@@ -10,6 +10,7 @@ use Transformer\Nexi;
 use Transformer\Popso;
 use Transformer\Poste;
 use Transformer\Revolut;
+use Transformer\Satispay;
 use Transformer\Telepass;
 use Transformer\Transformer;
 
@@ -28,6 +29,7 @@ class TransformerFactory
         'isybank' => Isybank::class,
         'bper' => BPER::class,
         'intesa' => Intesa::class,
+        'satispay' => Satispay::class,
     ];
 
     /**
